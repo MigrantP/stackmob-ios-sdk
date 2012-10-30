@@ -112,6 +112,15 @@
 		DE13864315DC7BAB00610EE1 /* Base64EncodedStringFromData.m in Sources */ = {isa = PBXBuildFile; fileRef = DE13864115DC7BAB00610EE1 /* Base64EncodedStringFromData.m */; };
 		DE14311F1639CD2E008BD3DF /* Random.h in Headers */ = {isa = PBXBuildFile; fileRef = DE14311A1639CD23008BD3DF /* Random.h */; };
 		DE1431201639CD34008BD3DF /* Random.m in Sources */ = {isa = PBXBuildFile; fileRef = DE14311B1639CD23008BD3DF /* Random.m */; };
+		DE48F5EC16407E6300B3A52E /* SMOAuth1Client.h in Headers */ = {isa = PBXBuildFile; fileRef = DE48F5E616407E6300B3A52E /* SMOAuth1Client.h */; };
+		DE48F5ED16407E6300B3A52E /* SMOAuth1Client.m in Sources */ = {isa = PBXBuildFile; fileRef = DE48F5E716407E6300B3A52E /* SMOAuth1Client.m */; };
+		DE48F5EE16407E6300B3A52E /* SMPushClient.h in Headers */ = {isa = PBXBuildFile; fileRef = DE48F5E816407E6300B3A52E /* SMPushClient.h */; };
+		DE48F5EF16407E6300B3A52E /* SMPushClient.m in Sources */ = {isa = PBXBuildFile; fileRef = DE48F5E916407E6300B3A52E /* SMPushClient.m */; };
+		DE48F5F016407E6300B3A52E /* SMPushToken.h in Headers */ = {isa = PBXBuildFile; fileRef = DE48F5EA16407E6300B3A52E /* SMPushToken.h */; };
+		DE48F5F116407E6300B3A52E /* SMPushToken.m in Sources */ = {isa = PBXBuildFile; fileRef = DE48F5EB16407E6300B3A52E /* SMPushToken.m */; };
+		DE48F5F5164083F800B3A52E /* SMPushClientSpec.m in Sources */ = {isa = PBXBuildFile; fileRef = DE48F5F3164083EE00B3A52E /* SMPushClientSpec.m */; };
+		DE48F5F81640850600B3A52E /* SMPushClientIntegrationSpec.m in Sources */ = {isa = PBXBuildFile; fileRef = DE48F5F61640841E00B3A52E /* SMPushClientIntegrationSpec.m */; };
+		DE48F5FA1640855500B3A52E /* StackMobPush.h in Headers */ = {isa = PBXBuildFile; fileRef = DE48F5F91640855500B3A52E /* StackMobPush.h */; };
 		DE64D6011623777900237570 /* SMUserManagedObject.h in Headers */ = {isa = PBXBuildFile; fileRef = DE64D5FF1623777900237570 /* SMUserManagedObject.h */; };
 		DE64D6021623777900237570 /* SMUserManagedObject.m in Sources */ = {isa = PBXBuildFile; fileRef = DE64D6001623777900237570 /* SMUserManagedObject.m */; };
 		DE64D608162389A600237570 /* Person.m in Sources */ = {isa = PBXBuildFile; fileRef = DE64D607162389A600237570 /* Person.m */; };
@@ -346,6 +355,15 @@
 		DE13864115DC7BAB00610EE1 /* Base64EncodedStringFromData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Base64EncodedStringFromData.m; sourceTree = "<group>"; };
 		DE14311A1639CD23008BD3DF /* Random.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Random.h; sourceTree = "<group>"; };
 		DE14311B1639CD23008BD3DF /* Random.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Random.m; sourceTree = "<group>"; };
+		DE48F5E616407E6300B3A52E /* SMOAuth1Client.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SMOAuth1Client.h; sourceTree = "<group>"; };
+		DE48F5E716407E6300B3A52E /* SMOAuth1Client.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SMOAuth1Client.m; sourceTree = "<group>"; };
+		DE48F5E816407E6300B3A52E /* SMPushClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SMPushClient.h; sourceTree = "<group>"; };
+		DE48F5E916407E6300B3A52E /* SMPushClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SMPushClient.m; sourceTree = "<group>"; };
+		DE48F5EA16407E6300B3A52E /* SMPushToken.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SMPushToken.h; sourceTree = "<group>"; };
+		DE48F5EB16407E6300B3A52E /* SMPushToken.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SMPushToken.m; sourceTree = "<group>"; };
+		DE48F5F3164083EE00B3A52E /* SMPushClientSpec.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SMPushClientSpec.m; sourceTree = "<group>"; };
+		DE48F5F61640841E00B3A52E /* SMPushClientIntegrationSpec.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SMPushClientIntegrationSpec.m; sourceTree = "<group>"; };
+		DE48F5F91640855500B3A52E /* StackMobPush.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StackMobPush.h; sourceTree = "<group>"; };
 		DE64D5FF1623777900237570 /* SMUserManagedObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SMUserManagedObject.h; sourceTree = "<group>"; };
 		DE64D6001623777900237570 /* SMUserManagedObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SMUserManagedObject.m; sourceTree = "<group>"; };
 		DE64D6041623894600237570 /* SMUserManagedObjectSpec.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SMUserManagedObjectSpec.m; sourceTree = "<group>"; };
@@ -465,6 +483,7 @@
 				DEB8474D159A74D000FF37A3 /* SMClientIntegrationSpec.m */,
 				619EDF11159292AC0075BB93 /* QueryTests.m */,
 				DEB16BCB15DC606300893EE5 /* SMCusCodeReqIntegrationSpec.m */,
+				DE48F5F61640841E00B3A52E /* SMPushClientIntegrationSpec.m */,
 			);
 			name = "Integration Tests";
 			path = "integration tests";
@@ -491,6 +510,7 @@
 			children = (
 				DE05E14015E2C02200224E4E /* Classes */,
 				DEBBBCB815CC441800650D75 /* Utility */,
+				DE48F5E516407E6300B3A52E /* Push */,
 				DE0CC76E15CB516800E491C4 /* CoreData */,
 				8CCCE4FF1580389800C38962 /* Tests */,
 				8C33B04C15912B1F00BE2570 /* Integration Tests */,
@@ -555,6 +575,7 @@
 				DE05E18C15E2C08B00224E4E /* SMQuerySpec.m */,
 				DEE18F59160A611E00BDCCC6 /* SMRelationshipHeadersSpec.m */,
 				DE8D501A1636101E0067B1C2 /* SMRequestOptionsSpec.m */,
+				DE48F5F3164083EE00B3A52E /* SMPushClientSpec.m */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -672,6 +693,20 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
+		DE48F5E516407E6300B3A52E /* Push */ = {
+			isa = PBXGroup;
+			children = (
+				DE48F5F91640855500B3A52E /* StackMobPush.h */,
+				DE48F5E616407E6300B3A52E /* SMOAuth1Client.h */,
+				DE48F5E716407E6300B3A52E /* SMOAuth1Client.m */,
+				DE48F5E816407E6300B3A52E /* SMPushClient.h */,
+				DE48F5E916407E6300B3A52E /* SMPushClient.m */,
+				DE48F5EA16407E6300B3A52E /* SMPushToken.h */,
+				DE48F5EB16407E6300B3A52E /* SMPushToken.m */,
+			);
+			path = Push;
+			sourceTree = "<group>";
+		};
 		DEBBBCA415CC440600650D75 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
@@ -741,6 +776,10 @@
 				DE14311F1639CD2E008BD3DF /* Random.h in Headers */,
 				DE9784A6163B5880001119D1 /* NSEntityDescription+StackMobSerialization.h in Headers */,
 				DE9784A8163B5880001119D1 /* NSManagedObject+StackMobSerialization.h in Headers */,
+				DE48F5EC16407E6300B3A52E /* SMOAuth1Client.h in Headers */,
+				DE48F5EE16407E6300B3A52E /* SMPushClient.h in Headers */,
+				DE48F5F016407E6300B3A52E /* SMPushToken.h in Headers */,
+				DE48F5FA1640855500B3A52E /* StackMobPush.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1076,6 +1115,7 @@
 				DEEA2B99161A2FF400F78DBB /* CRUDTests.m in Sources */,
 				DEEA2B9A161A2FF800F78DBB /* QueryTests.m in Sources */,
 				DEEA2B9B161A2FFC00F78DBB /* SMCusCodeReqIntegrationSpec.m in Sources */,
+				DE48F5F81640850600B3A52E /* SMPushClientIntegrationSpec.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1108,6 +1148,9 @@
 				DE1431201639CD34008BD3DF /* Random.m in Sources */,
 				DE9784A7163B5880001119D1 /* NSEntityDescription+StackMobSerialization.m in Sources */,
 				DE9784A9163B5880001119D1 /* NSManagedObject+StackMobSerialization.m in Sources */,
+				DE48F5ED16407E6300B3A52E /* SMOAuth1Client.m in Sources */,
+				DE48F5EF16407E6300B3A52E /* SMPushClient.m in Sources */,
+				DE48F5F116407E6300B3A52E /* SMPushToken.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1132,6 +1175,7 @@
 				DEE18F62160A77A200BDCCC6 /* NSEntityDescription_StackMobSerializationSpec.m in Sources */,
 				DEE18F63160A77AD00BDCCC6 /* NSManagedObject+StackMobSerializationSpec.m in Sources */,
 				DE8D501B1636101E0067B1C2 /* SMRequestOptionsSpec.m in Sources */,
+				DE48F5F5164083F800B3A52E /* SMPushClientSpec.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

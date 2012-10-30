@@ -31,7 +31,7 @@ The biggest difference between the new and the current SDKs is our use of Core D
 
 That being said, we understand that Core Data is not suitable for every application, which is why we still expose the complete REST based API for making create, read, update and delete calls and performing queries on your database.
 
-We've also separated our Push Notification API into a separate SDK. For more information, see the [iOS Push SDK Reference](http://stackmob.github.com/stackmob-ios-push-sdk/Classes/SMPushClient.html).
+We've also separated our Push Notification API into a separate SDK if you are using StackMob **only** for push. For more information, see the [SMPushClient Reference](http://stackmob.github.com/stackmob-ios-sdk/Classes/SMPushClient.html).
 
 <br/>
 ### Why base the new SDK on Core Data? 
@@ -139,7 +139,7 @@ For more information see **The User Schema** and **User Authentication** section
 
 ### Push Notifications
 
-Push Notification support has been moved into a separate SDK.  Check out the [iOS Push SDK Reference](http://stackmob.github.com/stackmob-ios-push-sdk/Classes/SMPushClient.html) to get started with push.
+Push Notification support is built into the iOS SDK, but has also been moved into a separate SDK if you will be using StackMob **only** for push support.  Check out the [SMPushClient Reference](http://stackmob.github.com/stackmob-ios-sdk/Classes/SMPushClient.html) to get started.
 
 <br/>
 ### Debugging
@@ -227,6 +227,7 @@ First, a table of how Core Data, StackMob and regular databases map to each othe
 * [SMDataStore](http://stackmob.github.com/stackmob-ios-sdk/Classes/SMDataStore.html) - Gives you access to make direct REST-based calls to StackMob.
 * [SMRequestOptions](http://stackmob.github.com/stackmob-ios-sdk/Classes/SMRequestOptions.html) - When making direct calls to StackMob, an instance of SMRequestOptions gives you request configuration options.
 * [SMUserManagedObject](http://stackmob.github.com/stackmob-ios-sdk/Classes/SMUserManagedObject.html) - The managed object subclass that defines your users should inherit from SMUserManagedObject.  
+* [SMPushClient](http://stackmob.github.com/stackmob-ios-sdk/Classes/SMPushClient.html) - Get started with sending Push Notifications.
 * [SMCustomCodeRequest](http://stackmob.github.com/stackmob-ios-sdk/Classes/SMCustomCodeRequest.html) - Starting place for making custom code calls.
 * [SMBinaryDataConversion](http://stackmob.github.com/stackmob-ios-sdk/Classes/SMBinaryDataConversion.html) - Convert NSData to NSString for persisting to a field on StackMob with type Binary Data (s3 Integration).
 

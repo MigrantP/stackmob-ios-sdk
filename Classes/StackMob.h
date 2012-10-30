@@ -19,8 +19,6 @@
 #import "SMDataStore.h"
 #import "SMQuery.h"
 #import "SMCustomCodeRequest.h"
-#import "SMCoreDataStore.h"
-#import "SMIncrementalStore.h"
 
 #import "SMUserSession.h"
 #import "SMOAuth2Client.h"
@@ -29,15 +27,20 @@
 #import "SMError.h"
 #import "SMRequestOptions.h"
 #import "Synchronization.h"
-
 #import "NSArray+Enumerable.h"
-#import "NSManagedObject+StackMobSerialization.h"
-#import "NSEntityDescription+StackMobSerialization.h"
-#import "SMIncrementalStore+Query.h"
+#import "SMBinaryDataConversion.h"
 #import "SMResponseBlocks.h"
 
-#import "SMBinaryDataConversion.h"
-
+#import "SMCoreDataStore.h"
+#import "SMIncrementalStore.h"
+#import "SMIncrementalStore+Query.h"
+#import "NSManagedObject+StackMobSerialization.h"
+#import "NSEntityDescription+StackMobSerialization.h"
 #import "SMUserManagedObject.h"
+
+
+
+
+
 
 
