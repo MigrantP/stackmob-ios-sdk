@@ -121,6 +121,10 @@
 		DE48F5F5164083F800B3A52E /* SMPushClientSpec.m in Sources */ = {isa = PBXBuildFile; fileRef = DE48F5F3164083EE00B3A52E /* SMPushClientSpec.m */; };
 		DE48F5F81640850600B3A52E /* SMPushClientIntegrationSpec.m in Sources */ = {isa = PBXBuildFile; fileRef = DE48F5F61640841E00B3A52E /* SMPushClientIntegrationSpec.m */; };
 		DE48F5FA1640855500B3A52E /* StackMobPush.h in Headers */ = {isa = PBXBuildFile; fileRef = DE48F5F91640855500B3A52E /* StackMobPush.h */; };
+		DE48F62A164093C100B3A52E /* StackMobPush.h in Copy Headers */ = {isa = PBXBuildFile; fileRef = DE48F5F91640855500B3A52E /* StackMobPush.h */; };
+		DE48F62B164093C100B3A52E /* SMOAuth1Client.h in Copy Headers */ = {isa = PBXBuildFile; fileRef = DE48F5E616407E6300B3A52E /* SMOAuth1Client.h */; };
+		DE48F62C164093C100B3A52E /* SMPushClient.h in Copy Headers */ = {isa = PBXBuildFile; fileRef = DE48F5E816407E6300B3A52E /* SMPushClient.h */; };
+		DE48F62D164093C100B3A52E /* SMPushToken.h in Copy Headers */ = {isa = PBXBuildFile; fileRef = DE48F5EA16407E6300B3A52E /* SMPushToken.h */; };
 		DE64D6011623777900237570 /* SMUserManagedObject.h in Headers */ = {isa = PBXBuildFile; fileRef = DE64D5FF1623777900237570 /* SMUserManagedObject.h */; };
 		DE64D6021623777900237570 /* SMUserManagedObject.m in Sources */ = {isa = PBXBuildFile; fileRef = DE64D6001623777900237570 /* SMUserManagedObject.m */; };
 		DE64D608162389A600237570 /* Person.m in Sources */ = {isa = PBXBuildFile; fileRef = DE64D607162389A600237570 /* Person.m */; };
@@ -231,6 +235,10 @@
 			dstPath = "~/Desktop/Headers";
 			dstSubfolderSpec = 0;
 			files = (
+				DE48F62A164093C100B3A52E /* StackMobPush.h in Copy Headers */,
+				DE48F62B164093C100B3A52E /* SMOAuth1Client.h in Copy Headers */,
+				DE48F62C164093C100B3A52E /* SMPushClient.h in Copy Headers */,
+				DE48F62D164093C100B3A52E /* SMPushToken.h in Copy Headers */,
 				DE9784DC163B6A79001119D1 /* NSEntityDescription+StackMobSerialization.h in Copy Headers */,
 				DE9784DD163B6A79001119D1 /* NSManagedObject+StackMobSerialization.h in Copy Headers */,
 				DE8D51CF15E2CB11002F582A /* NSDictionary+AtomicCounter.h in Copy Headers */,

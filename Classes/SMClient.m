@@ -256,8 +256,7 @@ static SMClient *defaultClient = nil;
         NSDictionary *old = [NSDictionary dictionaryWithObject:oldPassword forKey:@"password"];
         NSDictionary *new = [NSDictionary dictionaryWithObject:newPassword forKey:@"password"];
         NSDictionary *args = [NSDictionary dictionaryWithObjectsAndKeys:old, @"old", new, @"new", nil];
-        SMRequestOptions *options = [SMRequestOptions options];
-        options.isSecure = YES;
+        SMRequestOptions *options = [SMRequestOptions optionsWithHTTPS];
         [self.dataStore createObject:args inSchema:[self.userSchema stringByAppendingPathComponent:@"resetPassword"] options:options onSuccess:^(NSDictionary *theObject, NSString *schema) {
             successBlock(theObject);
         } onFailure:^(NSError *theError, NSDictionary *theObject, NSString *schema) {
