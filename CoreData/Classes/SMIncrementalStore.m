@@ -193,7 +193,7 @@ You should implement this method conservatively, and expect that unknown request
             
             SMRequestOptions *options = [SMRequestOptions options];
             // If superclass is SMUserNSManagedObject, add password
-            if ([obj superclass]  == [SMUserManagedObject class]) {
+            if ([obj isKindOfClass:[SMUserManagedObject class]]) {
                 BOOL addPasswordSuccess = [self addPasswordToSerializedDictionary:&serializedObjDict originalObject:obj];
                 if (!addPasswordSuccess)
                 {
