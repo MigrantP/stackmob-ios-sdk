@@ -379,7 +379,18 @@ You should implement this method conservatively, and expect that unknown request
             [NSException raise:SMExceptionIncompatibleObject format:@"No key for supposed primary key field %@ for item %@", primaryKeyField, item];
         }
         NSManagedObjectID *oid = [self newObjectIDForEntity:fetchRequest.entity referenceObject:remoteID];
-        return [context objectWithID:oid];
+        NSManagedObject *object = [context objectWithID:oid];
+        
+        // Populate the attributes of the object from the fetch data.
+        for (NSString *field in [item allKeys])
+        {
+            if (object.entity.attributesByName[field] != nil)
+            {
+                [object setPrimitiveValue:item[field] forKey:field];
+            }
+        }
+        
+        return object;
     }];
 }
 
