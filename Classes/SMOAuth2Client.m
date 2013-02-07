@@ -20,6 +20,7 @@
 #import "SMCustomCodeRequest.h"
 #import "SMRequestOptions.h"
 #import "Base64EncodedStringFromData.h"
+#import "SystemInformation.h"
 
 @implementation SMOAuth2Client
 
@@ -42,7 +43,7 @@
         NSString *acceptHeader = [NSString stringWithFormat:@"application/vnd.stackmob+json; version=%@", version];
         [self setDefaultHeader:@"Accept" value:acceptHeader]; 
         [self setDefaultHeader:@"X-StackMob-API-Key" value:self.publicKey];
-        [self setDefaultHeader:@"User-Agent" value:[NSString stringWithFormat:@"StackMob/%@ (%@/%@; %@;)", SDK_VERSION, [[UIDevice currentDevice] model], [[UIDevice currentDevice] systemVersion], [[NSLocale currentLocale] localeIdentifier]]];
+        [self setDefaultHeader:@"User-Agent" value:[NSString stringWithFormat:@"StackMob/%@ (%@/%@; %@;)", SDK_VERSION, smDeviceModel(), smSystemVersion(), [[NSLocale currentLocale] localeIdentifier]]];
         self.parameterEncoding = AFJSONParameterEncoding;
     }
     return self;
@@ -57,7 +58,7 @@
     if ([method isEqualToString:@"POST"] || [method isEqualToString:@"PUT"]) {
         [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
     }
-    [self signRequest:request];
+    [self signRequest:request path:[NSString stringWithFormat:@"/%@", path]];
     return request;
 }
 
@@ -71,10 +72,7 @@
     NSString *acceptHeader = [NSString stringWithFormat:@"application/vnd.stackmob+json; version=%@", self.version];
     [request setValue:acceptHeader forHTTPHeaderField:@"Accept"];
     [request setValue:self.publicKey forHTTPHeaderField:@"X-StackMob-API-Key"];
-    [request setValue:[NSString stringWithFormat:@"StackMob/%@ (%@/%@; %@;)", SDK_VERSION, [[UIDevice currentDevice] model], [[UIDevice currentDevice] systemVersion], [[NSLocale currentLocale] localeIdentifier]] forHTTPHeaderField:@"User-Agent"];
-    [options.headers enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
-        [request setValue:(NSString *)obj forHTTPHeaderField:(NSString *)key];
-    }];
+    [request setValue:[NSString stringWithFormat:@"StackMob/%@ (%@/%@; %@;)", SDK_VERSION, smDeviceModel(), smSystemVersion(), [[NSLocale currentLocale] localeIdentifier]] forHTTPHeaderField:@"User-Agent"];
 	
     if ([aRequest.queryStringParameters count] > 0) {
         url = [NSURL URLWithString:[[url absoluteString] stringByAppendingFormat:[aRequest.method rangeOfString:@"?"].location == NSNotFound ? @"?%@" : @"&%@", [aRequest.queryStringParameters componentsJoinedByString:@"&"]]];
@@ -85,15 +83,17 @@
         [request setHTTPBody:[aRequest.requestBody dataUsingEncoding:NSUTF8StringEncoding]];
     }
     
-    [self signRequest:request];
+    [self signRequest:request path:[[request URL] path]];
     return request;
 }
 
-- (void)signRequest:(NSMutableURLRequest *)request
+- (void)signRequest:(NSMutableURLRequest *)request path:(NSString *)path
 {
     if ([self hasValidCredentials]) {
-        NSString *queryString = [[[request URL] query] length] == 0 ? @"" : [NSString stringWithFormat:@"?%@", [[request URL] query]];
-        NSString *pathAndQuery = [NSString stringWithFormat:@"%@%@", [[request URL] path], queryString];
+        static NSString * const charactersToLeaveEscaped = @":/.?&=;+!@#$()~ ";
+        NSString *decodedQuery = (__bridge_transfer NSString *)CFURLCreateStringByReplacingPercentEscapesUsingEncoding(kCFAllocatorDefault, (__bridge CFStringRef)[[request URL] query], (__bridge CFStringRef)(charactersToLeaveEscaped), CFStringConvertNSStringEncodingToEncoding(NSUTF8StringEncoding));
+        NSString *queryString = [[[request URL] query] length] == 0 ? @"" : [NSString stringWithFormat:@"?%@", decodedQuery];
+        NSString *pathAndQuery = [NSString stringWithFormat:@"%@%@", path, queryString];
         NSString *macHeader = [self createMACHeaderForHttpMethod:[request HTTPMethod] path:pathAndQuery];
         [request setValue:macHeader forHTTPHeaderField:@"Authorization"];
     }

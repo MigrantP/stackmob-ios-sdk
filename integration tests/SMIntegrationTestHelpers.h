@@ -17,6 +17,7 @@
 #import <Foundation/Foundation.h>
 
 #import "StackMob.h"
+#import "StackMobPush.h"
 #import "Synchronization.h"
 
 #define SM_TEST_API_VERSION @"0"
@@ -25,9 +26,14 @@
 
 #define DLog(fmt, ...) NSLog((@"Performing %s [Line %d] " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__);
 
+@interface NSURLRequest(Private)
++(void)setAllowsAnyHTTPSCertificate:(BOOL)inAllow forHost:(NSString *)inHost;
+@end
+
 @interface SMIntegrationTestHelpers : NSObject
 
 + (SMClient *)defaultClient;
++ (SMPushClient *)defaultPushClient;
 + (SMDataStore *)dataStore;
 
 + (NSDictionary *)loadFixturesNamed:(NSArray *)fixtureNames;

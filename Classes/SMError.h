@@ -18,13 +18,15 @@
  `SMError` is a class which translates numeric error codes into readable errors, so you know what went wrong.
  */
 
-#import <Foundation/Foundation.h>
-
 extern NSString *const SMErrorDomain;
 extern NSString *const HTTPErrorDomain;
 extern NSString *const SMExceptionIncompatibleObject;
 extern NSString *const SMExceptionUnknownSchema;
 extern NSString *const SMExceptionAddPersistentStore;
+extern NSString *const SMExceptionCannotFillRelationshipFault;
+extern NSString *const SMExceptionCacheError;
+extern NSString *const SMOriginalErrorCausingRefreshKey;
+extern NSString *const SMRefreshErrorObjectKey;
 
 typedef enum {
     //Special StackMob things
@@ -33,6 +35,11 @@ typedef enum {
     SMErrorNoCountAvailable = -102,
     SMErrorRefreshTokenInProgress = -103,
     SMErrorPasswordForUserObjectNotFound = -104,
+    SMErrorNetworkNotReachable = -105,
+    SMErrorCacheIDNotFound = -106,
+    SMErrorCouldNotFillRelationshipFault = -107,
+    SMErrorCoreDataSave = -108,
+    SMErrorRefreshTokenFailed = -109,
     //Success messages. These shouldn't normally be encountered
     SMErrorOK = 200,
     SMErrorCreated = 201,

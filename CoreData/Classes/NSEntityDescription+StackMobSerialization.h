@@ -15,7 +15,6 @@
  */
 
 #import <CoreData/CoreData.h>
-#import <Foundation/Foundation.h>
 
 /**
  The primary purpose for this category is use the information and methods provided by an `NSEntityDescription` to return StackMob equivalent descriptions of schemas and fields.  This is useful when we have an entity description for entity Person and we want to translate that into the schema for StackMob, or for creating relationship headers needed when posting objects with nested relationship objects.
@@ -25,7 +24,7 @@
 /**
  Returns the StackMob equivalent schema for the entity name.
  */
-- (NSString *)sm_schema;
+- (NSString *)SMSchema;
 
 /**
  Returns the primary key field name for this entity.
@@ -37,6 +36,11 @@
 - (NSString *)primaryKeyField;
 
 /**
+ Converts the value returned from <primaryKeyField> to its StackMob equivalent field.
+ */
+- (NSString *)SMPrimaryKeyField;
+
+/**
  Given a property description, returns the equivalent field name on StackMob.
  
  @param property The description of an entity's property.
@@ -45,7 +49,7 @@
  
  @return The StackMob field name for that property. 
  */
-- (NSString *)sm_fieldNameForProperty:(NSPropertyDescription *)property;
+- (NSString *)SMFieldNameForProperty:(NSPropertyDescription *)property;
 
 /**
  Given a StackMob field name, returns the equivalent `NSPropertyDescription` for the Core Data attribute or relationship.
@@ -54,6 +58,6 @@
  
  @return An `NSPropertyDescription` for the equivalent Core Data attribute or relationship, if one exists. 
  */
-- (NSPropertyDescription *)sm_propertyForField:(NSString *)fieldName;
+- (NSPropertyDescription *)propertyForSMFieldName:(NSString *)fieldName;
 
 @end

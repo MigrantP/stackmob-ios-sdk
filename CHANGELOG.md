@@ -1,5 +1,39 @@
 <h2>StackMob iOS SDK Change Log</h2>
 
+<h3>v1.2.0 - January 24, 2013</h3>
+
+Get all the details on the features of this release from <a href="https://blog.stackmob.com/2013/01/ios-sdk-v1-2-0-released/">this blogpost</a>.
+
+**Features**
+
+* Caching system to allow for local fetching of objects which have previously been fetched from the server.  See SMCoreDataStore class reference for how to.
+* Introduce additional methods for interacting with Core Data.  See new methods in SMCoreDataStore and NSManagedObjectContext+Concurrency class references.
+* Update to internal network request algorithms for improved performance of Core Data saves and fetches.
+* All NSDate attributes are saved on StackMob as integers in ms, rather than seconds.  This allows there not be a mismatch in translation when you also have attributes for createddate and lastmoddate.
+* Every Datastore API method (SMDataStore class reference) now has an additional method definition which has parameter options for success and failure callback queues.  This is used a lot internally so callbacks are not run on the main thread, but is exposed so you can do the same.
+
+**Fixes**
+  
+* Fix in updateTwitterStatusWithMessage:onSuccess:onFailure method.
+* Fix in createUserWithFacebookToken:username:onSuccess:onFailure: to properly send request as a POST operation.
+* Fix in encoding query string parameters when logged in to ensure proper request signature.
+
+<h3>v1.1.3 - Nov 20, 2012</h3>
+
+**Features**
+
+* Integrate Push Notifications into core SDK.  Separate Push SDK still exists for those using StackMob only for push notifications.
+* Expose [SMNetworkReachability](http://stackmob.github.com/stackmob-ios-sdk/Classes/SMNetworkReachability.html) interface for developers to manually monitor network status changes.
+* Requests will return SMError with code -105 (SMNetworkNotReachable) when device has no network connection.
+* Now dependent on SystemConfiguration and MobileCoreServices frameworks, make sure to add them to the "Link Binary With Libraries" section of your target's Build Phases as well as import them somewhere in your project (such as your .pch file).
+
+**Fixes**
+
+* Support nil success and failure blocks.
+* Update to Core Data fetch algorithm to populate internal storage with retrieved attribute values.
+* URL encode primary key values on read/update/delete to support special characters.
+* Add expand depth support for queries.
+
 <h3>v1.1.2 - Oct 29, 2012</h3>
 
 **Features**

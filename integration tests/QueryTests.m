@@ -31,6 +31,13 @@ NSArray *fixtureNames = [NSArray arrayWithObjects:
 
 describe(@"with a prepopulated database of people", ^{
     beforeAll(^{
+        syncWithSemaphore(^(dispatch_semaphore_t semaphore) {
+            double delayInSeconds = 2.0;
+            dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, delayInSeconds * NSEC_PER_SEC);
+            dispatch_after(popTime, dispatch_get_current_queue(), ^{
+                syncReturn(semaphore);
+            });
+        });
         sm = [SMIntegrationTestHelpers dataStore];
         [SMIntegrationTestHelpers destroyAllForFixturesNamed:fixtureNames];
     });
@@ -47,6 +54,9 @@ describe(@"with a prepopulated database of people", ^{
         beforeEach(^{
             query = [[SMQuery alloc] initWithSchema:@"people"];
         });
+        afterEach(^{
+            query = nil;
+        });
         it(@"works", ^{
             [query where:@"last_name" isEqualTo:@"Vaznaian"];
             synchronousQuery(sm, query, ^(NSArray *results) {
@@ -61,13 +71,16 @@ describe(@"with a prepopulated database of people", ^{
         beforeEach(^{
             query = [[SMQuery alloc] initWithSchema:@"people"];
         });
+        afterEach(^{
+            query = nil;
+        });
         it(@"-where:isEqualTo", ^{
             [query where:@"last_name" isEqualTo:@"Williams"];
             synchronousQuery(sm, query, ^(NSArray *results) {
                 [[results should] haveCountOf:1];
                 [[[[results objectAtIndex:0] objectForKey:@"first_name"] should] equal:@"Jonah"];
             }, ^(NSError *error){
-                
+                [error shouldBeNil];
             });
         });
         it(@"-where:isNotEqualTo", ^{
@@ -78,7 +91,7 @@ describe(@"with a prepopulated database of people", ^{
                 [[[[sortedResults objectAtIndex:0] objectForKey:@"last_name"] should] equal:@"Cooper"];
                 [[[[sortedResults objectAtIndex:1] objectForKey:@"last_name"] should] equal:@"Vaznaian"];
             }, ^(NSError *error){
-                
+                [error shouldBeNil];
             });
         });
         it(@"-where:isLessThan", ^{
@@ -89,7 +102,7 @@ describe(@"with a prepopulated database of people", ^{
                 [[[[sortedResults objectAtIndex:0] objectForKey:@"last_name"] should] equal:@"Cooper"];
                 [[[[sortedResults objectAtIndex:1] objectForKey:@"last_name"] should] equal:@"Williams"];
             }, ^(NSError *error){
-                
+                [error shouldBeNil];
             });
         });
         it(@"-where:isLessThanOrEqualTo", ^{
@@ -101,7 +114,7 @@ describe(@"with a prepopulated database of people", ^{
                 [[[[sortedResults objectAtIndex:1] objectForKey:@"last_name"] should] equal:@"Vaznaian"];
                 [[[[sortedResults objectAtIndex:2] objectForKey:@"last_name"] should] equal:@"Williams"];
             }, ^(NSError *error){
-                
+                [error shouldBeNil];
             });
         });
         it(@"-where:isGreaterThan", ^{
@@ -110,7 +123,7 @@ describe(@"with a prepopulated database of people", ^{
                 [[results should] haveCountOf:1];
                 [[[[results objectAtIndex:0] objectForKey:@"last_name"] should] equal:@"Vaznaian"];
             }, ^(NSError *error){
-                
+                [error shouldBeNil];
             });
         });
         it(@"-where:isGreaterThanOrEqualTo", ^{
@@ -121,7 +134,7 @@ describe(@"with a prepopulated database of people", ^{
                 [[[[sortedResults objectAtIndex:0] objectForKey:@"last_name"] should] equal:@"Vaznaian"];
                 [[[[sortedResults objectAtIndex:1] objectForKey:@"last_name"] should] equal:@"Williams"];
             }, ^(NSError *error){
-                
+                [error shouldBeNil];
             });
         });
         it(@"-where:isIn", ^{
@@ -132,22 +145,51 @@ describe(@"with a prepopulated database of people", ^{
                 [[[[sortedResults objectAtIndex:0] objectForKey:@"last_name"] should] equal:@"Cooper"];
                 [[[[sortedResults objectAtIndex:1] objectForKey:@"last_name"] should] equal:@"Williams"];
             }, ^(NSError *error){
-                
+                [error shouldBeNil];
             });
         });
     });
     
     describe(@"multiple where clauses per query", ^{
         beforeEach(^{
-            [query where:@"company" isEqualTo:@"Carbon Five"];
-            [query where:@"first_name" isEqualTo:@"Jonah"];
+            query = [[SMQuery alloc] initWithSchema:@"people"];
+        });
+        afterEach(^{
+            query = nil;
         });
         it(@"works", ^{
+            [query where:@"company" isEqualTo:@"Carbon Five"];
+            [query where:@"first_name" isEqualTo:@"Jonah"];
             synchronousQuery(sm, query, ^(NSArray *results) {
                 [[results should] haveCountOf:1];
                 [[[results objectAtIndex:0] should] haveValue:@"Williams" forKey:@"last_name"];
             }, ^(NSError *error){
+                [error shouldBeNil];
+            });
+        });
+    });
+    
+    
+    describe(@"multiple where clauses on a count query", ^{
+        beforeEach(^{
+            query = [[SMQuery alloc] initWithSchema:@"people"];
+        });
+        afterEach(^{
+            query = nil;
+        });
+        it(@"works", ^{
+            [query where:@"armor_class" isLessThan:[NSNumber numberWithInt:17]];
+            [query where:@"armor_class" isGreaterThan:[NSNumber numberWithInt:12]];
+            
+            syncWithSemaphore(^(dispatch_semaphore_t semaphore) {
                 
+                [sm performCount:query onSuccess:^(NSNumber *count) {
+                    syncReturn(semaphore);
+                    [[count should] equal:[NSNumber numberWithInt:1]];
+                } onFailure:^(NSError *error) {
+                    syncReturn(semaphore);
+                    [error shouldBeNil];
+                }];
             });
         });
     });
@@ -156,17 +198,22 @@ describe(@"with a prepopulated database of people", ^{
         beforeEach(^{
             query = [[SMQuery alloc] initWithSchema:@"blogposts"];
         });
+        afterEach(^{
+            query = nil;
+        });
         it(@"-fromIndex:toIndex", ^{
+            __block NSArray *expectedObjects = [NSArray arrayWithObjects:@"D", @"E", @"F", @"G", @"H", nil];
             [query fromIndex:4 toIndex:8];
+            [query orderByField:@"title" ascending:YES];
             synchronousQuery(sm, query, ^(NSArray *results) {
                 [[results should] haveCountOf:5];
                 NSArray *sortedResults = [results sortedArrayUsingDescriptors:[NSArray arrayWithObject:[NSSortDescriptor sortDescriptorWithKey:@"title" ascending:YES]]];
+                NSLog(@"sorted results: %@", sortedResults);
                 for (int i = 4; i <= 8; i++) {
-                    int postNumber = i + 1;
-                    [[[[sortedResults objectAtIndex:i-4] objectForKey:@"title"] should] equal:[NSString stringWithFormat:@"Post %d", postNumber]];
+                    [[[[sortedResults objectAtIndex:i-4] objectForKey:@"title"] should] equal:[NSString stringWithFormat:@"Post %@", [expectedObjects objectAtIndex:i-4]]];
                 }
             }, ^(NSError *error){
-                
+                [error shouldBeNil];
             });
         });
         it(@"-limit", ^{
@@ -174,7 +221,7 @@ describe(@"with a prepopulated database of people", ^{
             synchronousQuery(sm, query, ^(NSArray *results) {
                 [[results should] haveCountOf:3];
             }, ^(NSError *error){
-                
+                [error shouldBeNil];
             });
         });
     });
@@ -183,12 +230,15 @@ describe(@"with a prepopulated database of people", ^{
         beforeEach(^{
             query = [[SMQuery alloc] initWithSchema:@"people"];
         });
+        afterEach(^{
+            query = nil;
+        });
         it(@"defaults to getting all the matches (i.e.  no 'where')", ^{
             query = [[SMQuery alloc] initWithSchema:@"blogposts"];
             synchronousQuery(sm, query, ^(NSArray *results) {
                 [[results should] haveCountOf:15];
             }, ^(NSError *error){
-                
+                [error shouldBeNil];
             });
         });
         describe(@"when the intent is to sort by one field", ^{
@@ -199,7 +249,7 @@ describe(@"with a prepopulated database of people", ^{
                     [[[results objectAtIndex:1] should] haveValue:@"Matt" forKey:@"first_name"];
                     [[[results objectAtIndex:2] should] haveValue:@"Jonah" forKey:@"first_name"];
                 }, ^(NSError *error){
-                    
+                    [error shouldBeNil];
                 });
             });    
         });
@@ -212,7 +262,7 @@ describe(@"with a prepopulated database of people", ^{
                     [[[results objectAtIndex:1] should] haveValue:@"Jonah" forKey:@"first_name"];
                     [[[results objectAtIndex:2] should] haveValue:@"Jon" forKey:@"first_name"];
                 }, ^(NSError *error){
-                    
+                    [error shouldBeNil];
                 });
             });
         });
@@ -224,6 +274,9 @@ describe(@"with a prepopulated database of people", ^{
         
         beforeEach(^{
             query = [[SMQuery alloc] initWithSchema:@"places"];
+        });
+        afterEach(^{
+            query = nil;
         });
         describe(@"-where:near", ^{
             beforeEach(^{
@@ -240,7 +293,7 @@ describe(@"with a prepopulated database of people", ^{
                         [[(NSDictionary *)obj should] haveValueForKeyPath:@"location.distance"];
                     }];
                 }, ^(NSError *error){
-                    
+                    [error shouldBeNil];
                 });
             });
         });
@@ -252,7 +305,7 @@ describe(@"with a prepopulated database of people", ^{
                 [[results should] haveCountOf:1];
                 [[[results objectAtIndex:0] should] haveValue:@"Turkmenistan" forKey:@"name"];
             }, ^(NSError *error){
-                
+                [error shouldBeNil];
             });
         });
         it(@"-where:isWithin:metersOf", ^{
@@ -263,7 +316,7 @@ describe(@"with a prepopulated database of people", ^{
                 [[[results objectAtIndex:0] should] haveValue:@"San Francisco" forKey:@"name"];
                 [[[results objectAtIndex:1] should] haveValue:@"San Rafael" forKey:@"name"];
             }, ^(NSError *error){
-                
+                [error shouldBeNil];
             });
         });
         
@@ -277,7 +330,7 @@ describe(@"with a prepopulated database of people", ^{
                 [[[results objectAtIndex:0] should] haveValue:@"Lake Tahoe" forKey:@"name"];
                 [[[results objectAtIndex:1] should] haveValue:@"San Rafael" forKey:@"name"];
             }, ^(NSError *error){
-                
+                [error shouldBeNil];
             });
         });
     });
