@@ -1,5 +1,5 @@
 /**
- * Copyright 2012 StackMob
+ * Copyright 2012-2013 StackMob
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,10 @@ describe(@"SMUserManagedObject", ^{
         [SMCoreDataIntegrationTestHelpers removeSQLiteDatabaseAndMapsWithPublicKey:client.publicKey];
         
         [client setUserSchema:@"user3"];
-        cds = [client coreDataStoreWithManagedObjectModel:[NSManagedObjectModel mergedModelFromBundles:[NSBundle allBundles]]];
+        NSBundle *classBundle = [NSBundle bundleForClass:[self class]];
+        NSURL *modelURL = [classBundle URLForResource:@"SMCoreDataIntegrationTest" withExtension:@"momd"];
+        NSManagedObjectModel *aModel = [[NSManagedObjectModel alloc] initWithContentsOfURL:modelURL];
+        cds = [client coreDataStoreWithManagedObjectModel:aModel];
         moc = [cds contextForCurrentThread];
         [[client.session.networkMonitor stubAndReturn:theValue(1)] currentNetworkStatus];
     });
@@ -109,7 +112,6 @@ describe(@"SMUserManagedObject", ^{
             }];
         });
     });
-     
 
 });
 
@@ -119,11 +121,14 @@ describe(@"can set a client with different password field name and everything st
     __block User4 *person = nil;
     __block SMCoreDataStore *cds = nil;
     beforeEach(^{
-        SM_CORE_DATA_DEBUG = YES;
+        //SM_CORE_DATA_DEBUG = YES;
         client = [SMIntegrationTestHelpers defaultClient];
         [SMClient setDefaultClient:client];
         [SMCoreDataIntegrationTestHelpers removeSQLiteDatabaseAndMapsWithPublicKey:client.publicKey];
-        cds = [client coreDataStoreWithManagedObjectModel:[NSManagedObjectModel mergedModelFromBundles:[NSBundle allBundles]]];
+        NSBundle *classBundle = [NSBundle bundleForClass:[self class]];
+        NSURL *modelURL = [classBundle URLForResource:@"SMCoreDataIntegrationTest" withExtension:@"momd"];
+        NSManagedObjectModel *aModel = [[NSManagedObjectModel alloc] initWithContentsOfURL:modelURL];
+        cds = [client coreDataStoreWithManagedObjectModel:aModel];
         moc = [cds contextForCurrentThread];
     });
     afterEach(^{
@@ -169,7 +174,10 @@ describe(@"creating and saving two users should not conflict with each other", ^
         [SMClient setDefaultClient:client];
         [SMCoreDataIntegrationTestHelpers removeSQLiteDatabaseAndMapsWithPublicKey:client.publicKey];
         [client setUserSchema:@"User3"];
-        cds = [client coreDataStoreWithManagedObjectModel:[NSManagedObjectModel mergedModelFromBundles:[NSBundle allBundles]]];
+        NSBundle *classBundle = [NSBundle bundleForClass:[self class]];
+        NSURL *modelURL = [classBundle URLForResource:@"SMCoreDataIntegrationTest" withExtension:@"momd"];
+        NSManagedObjectModel *aModel = [[NSManagedObjectModel alloc] initWithContentsOfURL:modelURL];
+        cds = [client coreDataStoreWithManagedObjectModel:aModel];
         moc = [cds contextForCurrentThread];
         [[client.session.networkMonitor stubAndReturn:theValue(1)] currentNetworkStatus];
         // tests save here
@@ -265,7 +273,10 @@ describe(@"should be able to create a user, relate to other object, and save eve
         [SMClient setDefaultClient:client];
         [SMCoreDataIntegrationTestHelpers removeSQLiteDatabaseAndMapsWithPublicKey:client.publicKey];
         [client setUserSchema:@"User3"];
-        cds = [client coreDataStoreWithManagedObjectModel:[NSManagedObjectModel mergedModelFromBundles:[NSBundle allBundles]]];
+        NSBundle *classBundle = [NSBundle bundleForClass:[self class]];
+        NSURL *modelURL = [classBundle URLForResource:@"SMCoreDataIntegrationTest" withExtension:@"momd"];
+        NSManagedObjectModel *aModel = [[NSManagedObjectModel alloc] initWithContentsOfURL:modelURL];
+        cds = [client coreDataStoreWithManagedObjectModel:aModel];
         moc = [cds contextForCurrentThread];
         [[client.session.networkMonitor stubAndReturn:theValue(1)] currentNetworkStatus];
         // tests save here
@@ -322,7 +333,10 @@ describe(@"userPrimaryKeyField works", ^{
         [SMClient setDefaultClient:client];
         [SMCoreDataIntegrationTestHelpers removeSQLiteDatabaseAndMapsWithPublicKey:client.publicKey];
         [client setUserSchema:@"User3"];
-        cds = [client coreDataStoreWithManagedObjectModel:[NSManagedObjectModel mergedModelFromBundles:[NSBundle allBundles]]];
+        NSBundle *classBundle = [NSBundle bundleForClass:[self class]];
+        NSURL *modelURL = [classBundle URLForResource:@"SMCoreDataIntegrationTest" withExtension:@"momd"];
+        NSManagedObjectModel *aModel = [[NSManagedObjectModel alloc] initWithContentsOfURL:modelURL];
+        cds = [client coreDataStoreWithManagedObjectModel:aModel];
         moc = [cds contextForCurrentThread];
         [[client.session.networkMonitor stubAndReturn:theValue(1)] currentNetworkStatus];
     });
@@ -377,7 +391,10 @@ describe(@"testing someting", ^{
         [SMClient setDefaultClient:client];
         [SMCoreDataIntegrationTestHelpers removeSQLiteDatabaseAndMapsWithPublicKey:client.publicKey];
         [client setUserSchema:@"User3"];
-        cds = [client coreDataStoreWithManagedObjectModel:[NSManagedObjectModel mergedModelFromBundles:[NSBundle allBundles]]];
+        NSBundle *classBundle = [NSBundle bundleForClass:[self class]];
+        NSURL *modelURL = [classBundle URLForResource:@"SMCoreDataIntegrationTest" withExtension:@"momd"];
+        NSManagedObjectModel *aModel = [[NSManagedObjectModel alloc] initWithContentsOfURL:modelURL];
+        cds = [client coreDataStoreWithManagedObjectModel:aModel];
         moc = [cds contextForCurrentThread];
         [[client.session.networkMonitor stubAndReturn:theValue(1)] currentNetworkStatus];
     });

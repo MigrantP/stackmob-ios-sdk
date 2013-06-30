@@ -1,5 +1,5 @@
 /**
- * Copyright 2012 StackMob
+ * Copyright 2012-2013 StackMob
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,11 +44,11 @@
 - (void)networkDidChange:(NSNotification *)notification
 {
     NSLog(@"user info is %@", [notification userInfo]);
-    if ([[[notification userInfo] objectForKey:SMCurrentNetworkStatusKey] intValue] == Reachable) {
+    if ([[[notification userInfo] objectForKey:SMCurrentNetworkStatusKey] intValue] == SMNetworkStatusReachable) {
         NSLog(@"Reachable");
     }
     switch ([[[notification userInfo] objectForKey:SMCurrentNetworkStatusKey] intValue]) {
-        case  Reachable:
+        case  SMNetworkStatusReachable:
             NSLog(@"Reachable via switch statement");
             break;
         default:

@@ -1,5 +1,5 @@
 /**
- * Copyright 2012 StackMob
+ * Copyright 2012-2013 StackMob
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,7 +133,7 @@ describe(@"-customCodeRequest:options", ^{
             aRequest = [dataStore.session.regularOAuthClient customCodeRequest:request options:[SMRequestOptions optionsWithHeaders:[NSDictionary dictionaryWithObject:@"blah" forKey:@"newHeader"]]];
             [aRequest shouldNotBeNil];
             
-            [[theValue([[aRequest allHTTPHeaderFields] count]) should] equal:theValue(3)];
+            [[theValue([[aRequest allHTTPHeaderFields] count]) should] equal:theValue(4)];
             
             NSData *theData = [aRequest HTTPBody];
             NSString *decodedString = [[NSString alloc] initWithData:theData encoding:NSUTF8StringEncoding];
@@ -153,7 +153,7 @@ describe(@"-customCodeRequest:options", ^{
             aRequest = [dataStore.session.regularOAuthClient customCodeRequest:request options:[SMRequestOptions optionsWithHeaders:[NSDictionary dictionaryWithObject:@"blah" forKey:@"newHeader"]]];
             [aRequest shouldNotBeNil];
             
-            [[theValue([[aRequest allHTTPHeaderFields] count]) should] equal:theValue(3)];
+            [[theValue([[aRequest allHTTPHeaderFields] count]) should] equal:theValue(4)];
             
             NSData *theData = [aRequest HTTPBody];
             NSString *decodedString = [[NSString alloc] initWithData:theData encoding:NSUTF8StringEncoding];

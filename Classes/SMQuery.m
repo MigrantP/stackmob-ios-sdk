@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 StackMob
+ * Copyright 2012-2013 StackMob
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,20 @@
  */
 
 #import "SMQuery.h"
+#import "SMError.h"
 
 #define CONCAT(prefix, suffix) ([NSString stringWithFormat:@"%@%@", prefix, suffix])
 
 #define EARTH_RADIAN_MILES 3956.6
 #define EARTH_RADIAN_KM    6367.5
+
+@interface SMQuery () {
+    int _andGroup;
+    int _orGroup;
+    BOOL _isOrQuery;
+}
+
+@end
 
 @implementation SMQuery
 
@@ -49,6 +58,9 @@
         _schemaName = [schema lowercaseString];
         _requestParameters = [NSMutableDictionary dictionaryWithCapacity:1];
         _requestHeaders = [NSMutableDictionary dictionaryWithCapacity:1];
+        _andGroup = 0;
+        _orGroup = 0;
+        _isOrQuery = NO;
     }
     return self;
 }
@@ -59,6 +71,9 @@
     if(value == nil) {
         [requestParametersCopy setObject:@"true"
                                   forKey:CONCAT(field, @"[null]")];
+    } else if ([value isEqual:@""]) {
+        [requestParametersCopy setObject:@"true"
+                                  forKey:CONCAT(field, @"[empty]")];
     } else {
         [requestParametersCopy setObject:[self marshalValue:value] 
                                   forKey:field];
@@ -72,6 +87,9 @@
     if(value == nil) {
         [requestParametersCopy setObject:@"false"
                                   forKey:CONCAT(field, @"[null]")];
+    } else if ([value isEqual:@""]) {
+        [requestParametersCopy setObject:@"false"
+                                  forKey:CONCAT(field, @"[empty]")];
     } else {
         [requestParametersCopy setObject:[self marshalValue:value]
                                   forKey:CONCAT(field, @"[ne]")];
@@ -120,6 +138,15 @@
     self.requestParameters = [NSDictionary dictionaryWithDictionary:requestParametersCopy];
 }
 
+- (void)where:(NSString *)field isNotIn:(NSArray *)valuesArray
+{
+    NSMutableDictionary *requestParametersCopy = [self.requestParameters mutableCopy];
+    NSString *possibleValues = [valuesArray componentsJoinedByString:@","];
+    [requestParametersCopy setObject:possibleValues
+                              forKey:CONCAT(field, @"[nin]")];
+    self.requestParameters = [NSDictionary dictionaryWithDictionary:requestParametersCopy];
+}
+
 - (void)where:(NSString *)field isWithin:(CLLocationDistance)miles milesOf:(CLLocationCoordinate2D)point
 {
     NSMutableDictionary *requestParametersCopy = [self.requestParameters mutableCopy];
@@ -132,6 +159,14 @@
     [requestParametersCopy setObject:withinParam
                               forKey:CONCAT(field, @"[within]")];
     self.requestParameters = [NSDictionary dictionaryWithDictionary:requestParametersCopy];
+}
+
+- (void)where:(NSString *)field isWithin:(double)miles milesOfGeoPoint:(SMGeoPoint *)geoPoint {
+    CLLocationCoordinate2D point;
+    point.latitude = [geoPoint.latitude doubleValue];
+    point.longitude = [geoPoint.longitude doubleValue];
+    
+    [self where:field isWithin:miles milesOf:point];
 }
 
 - (void)where:(NSString *)field isWithin:(CLLocationDistance)kilometers kilometersOf:(CLLocationCoordinate2D)point
@@ -147,6 +182,14 @@
     self.requestParameters = [NSDictionary dictionaryWithDictionary:requestParametersCopy];
 }
 
+- (void)where:(NSString *)field isWithin:(CLLocationDistance)kilometers kilometersOfGeoPoint:(SMGeoPoint *)geoPoint {
+    CLLocationCoordinate2D point;
+    point.latitude = [geoPoint.latitude doubleValue];
+    point.longitude = [geoPoint.longitude doubleValue];
+    
+    [self where:field isWithin:kilometers kilometersOf:point];
+}
+
 - (void)where:(NSString *)field isWithinBoundsWithSWCorner:(CLLocationCoordinate2D)sw andNECorner:(CLLocationCoordinate2D)ne
 {
     NSMutableDictionary *requestParametersCopy = [self.requestParameters mutableCopy];
@@ -160,6 +203,18 @@
     self.requestParameters = [NSDictionary dictionaryWithDictionary:requestParametersCopy];
 }
 
+- (void)where:(NSString *)field isWithinBoundsWithSWGeoPoint:(SMGeoPoint *)sw andNEGeoPoint:(SMGeoPoint *)ne {
+    CLLocationCoordinate2D swCorner;
+    swCorner.latitude = [sw.latitude doubleValue];
+    swCorner.longitude = [sw.longitude doubleValue];
+    
+    CLLocationCoordinate2D neCorner;
+    neCorner.latitude = [ne.latitude doubleValue];
+    neCorner.longitude = [ne.longitude doubleValue];
+    
+    [self where:field isWithinBoundsWithSWCorner:swCorner andNECorner:neCorner];
+}
+
 // TODO: how do we highlight to the user that this is going to add a 'distance' field and will ignore order by criteria
 - (void)where:(NSString *)field near:(CLLocationCoordinate2D)point {
     NSMutableDictionary *requestParametersCopy = [self.requestParameters mutableCopy];
@@ -169,6 +224,14 @@
     [requestParametersCopy setObject:nearParam 
                               forKey:CONCAT(field, @"[near]")];
     self.requestParameters = [NSDictionary dictionaryWithDictionary:requestParametersCopy];
+}
+
+- (void)where:(NSString *)field nearGeoPoint:(SMGeoPoint *)geoPoint {
+    CLLocationCoordinate2D point;
+    point.latitude = [geoPoint.latitude doubleValue];
+    point.longitude = [geoPoint.longitude doubleValue];
+    
+    [self where:field near:point];
 }
 
 - (void)fromIndex:(NSUInteger)start toIndex:(NSUInteger)end
@@ -206,12 +269,81 @@
 }
 
 - (id)marshalValue:(id)value {
-    if ([value isKindOfClass:[NSDate class]]) {        
-        unsigned long long convertedValue = [value timeIntervalSince1970] * 1000;
-        return [NSNumber numberWithUnsignedLongLong:convertedValue];
+    
+    if ([value isKindOfClass:[NSDate class]]) {
+    
+        long double convertedValue = (long double)[value timeIntervalSince1970] * 1000.0000;
+        
+        return [NSNumber numberWithUnsignedLongLong:floorl(convertedValue)];
     }
     
     return value;
+}
+
+- (void)SM_setKeysAndValuesFrom:(NSDictionary *)requestParameters to:(NSMutableDictionary *__autoreleasing*)newParameters
+{
+    BOOL shouldAddAnd = NO;
+    __block NSString *keyToSet = @"";
+    shouldAddAnd = [requestParameters count] > 1 ? YES : NO;
+    if (shouldAddAnd) {
+        _andGroup += 1;
+        [requestParameters enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
+            keyToSet = [NSString stringWithFormat:@"[or%d].[and%d].%@", _orGroup, _andGroup, key];
+            if (![[*newParameters allKeys] containsObject:keyToSet]) {
+                [*newParameters setObject:obj forKey:keyToSet];
+            } else {
+                [NSException raise:SMExceptionIncompatibleObject format:@"Duplicate parameter key found: %@.  This may cause unexpected query results as the key to set will override the existing key/value.  To include a condition where a key can be one of multiple values, use IN i.e. 'key IN [value1, value2]'.", keyToSet];
+            }
+        }];
+    } else {
+        [requestParameters enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
+            keyToSet = [NSString stringWithFormat:@"[or%d].%@", _orGroup, key];
+            if (![[*newParameters allKeys] containsObject:keyToSet]) {
+                [*newParameters setObject:obj forKey:keyToSet];
+            } else {
+                [NSException raise:SMExceptionIncompatibleObject format:@"Duplicate parameter key found: %@.  This may cause unexpected query results as the key to set will override the existing key/value.  To include a condition where a key can be one of multiple values, use IN i.e. 'key IN [value1, value2]'.", keyToSet];
+            }
+        }];
+    }
+}
+
+- (SMQuery *)or:(SMQuery *)query
+{
+    NSMutableDictionary *newParameters = [NSMutableDictionary dictionary];
+    if (_isOrQuery) {
+        NSMutableDictionary *currentParametersCopy = [self.requestParameters mutableCopy];
+        [self SM_setKeysAndValuesFrom:query.requestParameters to:&newParameters];
+        
+        // Enumerate through entries to be added and check for duplicate keys that would be overriden
+        [newParameters enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
+            if (![[currentParametersCopy allKeys] containsObject:key]) {
+                [currentParametersCopy setObject:obj forKey:key];
+            } else {
+                [NSException raise:SMExceptionIncompatibleObject format:@"Duplicate parameter key found: '%@'.  This may cause unexpected query results as the new key/value will override the existing key/value.  To include a condition where a key can be one of multiple values, use IN i.e. 'key IN [value1, value2]'.", key];
+            }
+        }];
+        self.requestParameters = [NSDictionary dictionaryWithDictionary:currentParametersCopy];
+        
+    } else {
+        _isOrQuery = YES;
+        _orGroup += 1;
+        
+        [self SM_setKeysAndValuesFrom:self.requestParameters to:&newParameters];
+        [self SM_setKeysAndValuesFrom:query.requestParameters to:&newParameters];
+        
+        self.requestParameters = [NSDictionary dictionaryWithDictionary:newParameters];
+    }
+    
+    return self;
+}
+
+- (SMQuery *)and:(SMQuery *)query
+{
+    NSMutableDictionary *requestParametersCopy = [self.requestParameters mutableCopy];
+    [requestParametersCopy addEntriesFromDictionary:query.requestParameters];
+    self.requestParameters = [NSDictionary dictionaryWithDictionary:requestParametersCopy];
+    
+    return self;
 }
 
 @end

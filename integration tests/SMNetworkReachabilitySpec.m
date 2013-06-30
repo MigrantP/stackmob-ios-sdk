@@ -1,5 +1,5 @@
 /**
- * Copyright 2012 StackMob
+ * Copyright 2012-2013 StackMob
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 
 #import <Kiwi/Kiwi.h>
-#import "SMNetworkReachability.h"
 #import "SMNetworkReachabilityHelper.h"
 #import "SMIntegrationTestHelpers.h"
 
@@ -30,17 +29,17 @@ describe(@"SMNetworkReachability", ^{
         [client.session.networkMonitor setNetworkStatusChangeBlock:^(SMNetworkStatus status) {
             NSLog(@"block is getting called with status %d", status);
         }];
-        if ([client.session.networkMonitor currentNetworkStatus] == Reachable) {
+        if ([client.session.networkMonitor currentNetworkStatus] == SMNetworkStatusReachable) {
             NSLog(@"We are reachable");
         }
         switch ([client.session.networkMonitor currentNetworkStatus]) {
-            case  Reachable:
+            case SMNetworkStatusReachable:
                 NSLog(@"Reachable via switch statement");
                 break;
-            case NotReachable:
+            case SMNetworkStatusNotReachable:
                 NSLog(@"Not reachable");
                 break;
-            case Unknown:
+            case SMNetworkStatusUnknown:
                 NSLog(@"Unknowwn");
                 break;
             default:

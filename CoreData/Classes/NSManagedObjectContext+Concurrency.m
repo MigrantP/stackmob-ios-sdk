@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 StackMob
+ * Copyright 2012-2013 StackMob
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,7 +68,11 @@
 
 - (void)saveWithSuccessCallbackQueue:(dispatch_queue_t)successCallbackQueue failureCallbackQueue:(dispatch_queue_t)failureCallbackQueue onSuccess:(SMSuccessBlock)successBlock onFailure:(SMFailureBlock)failureBlock
 {
-    
+    [self saveWithSuccessCallbackQueue:successCallbackQueue failureCallbackQueue:failureCallbackQueue options:nil onSuccess:successBlock onFailure:failureBlock];
+}
+
+- (void)saveWithSuccessCallbackQueue:(dispatch_queue_t)successCallbackQueue failureCallbackQueue:(dispatch_queue_t)failureCallbackQueue options:(SMRequestOptions *)options onSuccess:(SMSuccessBlock)successBlock onFailure:(SMFailureBlock)failureBlock
+{
     NSManagedObjectContext *mainContext = nil;
     NSManagedObjectContext *temporaryContext = nil;
     if ([self concurrencyType] == NSMainQueueConcurrencyType) {
@@ -93,26 +97,43 @@
     [temporaryContext performBlock:^{
         
         __block NSError *saveError;
+        
+        if (options) {
+            SMRequestOptions *newOptions = options;
+            NSMutableDictionary *threadDict = [[NSThread currentThread] threadDictionary];
+            [threadDict setObject:newOptions forKey:SMRequestSpecificOptions];
+        }
+        
         // Save Temporary Context
-        if (![temporaryContext save:&saveError]) {
+        BOOL tempContextSaveSuccess = [temporaryContext save:&saveError];
+        
+        if (options) {
+            [[[NSThread currentThread] threadDictionary] removeObjectForKey:SMRequestSpecificOptions];
+        }
+        
+        if (!tempContextSaveSuccess) {
             
-            if (failureBlock) {
-                dispatch_async(failureCallbackQueue, ^{
-                    failureBlock(saveError);
-                });
-            }
+            [self callFailureBlock:failureBlock queue:failureCallbackQueue error:saveError];
             
         } else {
             // Save Main Context
             [mainContext performBlock:^{
                 
-                if (![mainContext save:&saveError]) {
+                if (options) {
+                    SMRequestOptions *newOptions = options;
+                    NSMutableDictionary *threadDict = [[NSThread currentThread] threadDictionary];
+                    [threadDict setObject:newOptions forKey:SMRequestSpecificOptions];
+                }
+                
+                BOOL mainContextSaveSuccess = [mainContext save:&saveError];
+                
+                if (options) {
+                    [[[NSThread currentThread] threadDictionary] removeObjectForKey:SMRequestSpecificOptions];
+                }
+                
+                if (!mainContextSaveSuccess) {
                     
-                    if (failureBlock) {
-                        dispatch_async(failureCallbackQueue, ^{
-                            failureBlock(saveError);
-                        });
-                    }
+                    [self callFailureBlock:failureBlock queue:failureCallbackQueue error:saveError];
                     
                 } else {
                     // Main Context should always have a private queue parent
@@ -121,15 +142,24 @@
                         // Save Private Context to disk
                         [privateContext performBlock:^{
                             
-                            if (![privateContext save:&saveError]) {
+                            if (options) {
+                                SMRequestOptions *newOptions = options;
+                                NSMutableDictionary *threadDict = [[NSThread currentThread] threadDictionary];
+                                [threadDict setObject:newOptions forKey:SMRequestSpecificOptions];
+                            }
+                            
+                            BOOL privateContextSaveSuccess = [privateContext save:&saveError];
+                            
+                            if (options) {
+                                [[[NSThread currentThread] threadDictionary] removeObjectForKey:SMRequestSpecificOptions];
+                            }
+                            
+                            if (!privateContextSaveSuccess) {
                                 
-                                if (failureBlock) {
-                                    dispatch_async(failureCallbackQueue, ^{
-                                        failureBlock(saveError);
-                                    });
-                                }
+                                [self callFailureBlock:failureBlock queue:failureCallbackQueue error:saveError];
                                 
                             } else {
+                                
                                 // Dispatch success block to main thread
                                 if (successBlock) {
                                     dispatch_async(successCallbackQueue, ^{
@@ -151,11 +181,13 @@
     }];
 }
 
-
-
 - (BOOL)saveAndWait:(NSError *__autoreleasing*)error
 {
-    
+    return [self saveAndWait:error options:nil];
+}
+
+- (BOOL)saveAndWait:(NSError *__autoreleasing *)error options:(SMRequestOptions *)options
+{
     
     NSManagedObjectContext *mainContext = nil;
     NSManagedObjectContext *temporaryContext = nil;
@@ -182,6 +214,12 @@
     __block NSError *saveError = nil;
     [temporaryContext performBlockAndWait:^{
         
+        if (options) {
+            SMRequestOptions *newOptions = options;
+            NSMutableDictionary *threadDict = [[NSThread currentThread] threadDictionary];
+            [threadDict setObject:newOptions forKey:SMRequestSpecificOptions];
+        }
+        
         // Save Temporary Context
         if ([temporaryContext save:&saveError]) {
             
@@ -194,7 +232,7 @@
                     [privateContext performBlockAndWait:^{
                         
                         if ([privateContext save:&saveError]) {
-                            
+
                             success = YES;
                         }
                         
@@ -212,6 +250,10 @@
         *error = saveError;
     }
     
+    if (options) {
+        [[[NSThread currentThread] threadDictionary] removeObjectForKey:SMRequestSpecificOptions];
+    }
+    
     return success;
 }
 
@@ -227,27 +269,39 @@
 
 - (void)executeFetchRequest:(NSFetchRequest *)request returnManagedObjectIDs:(BOOL)returnIDs successCallbackQueue:(dispatch_queue_t)successCallbackQueue failureCallbackQueue:(dispatch_queue_t)failureCallbackQueue onSuccess:(SMResultsSuccessBlock)successBlock onFailure:(SMFailureBlock)failureBlock
 {
-    dispatch_queue_t aQueue = dispatch_queue_create("Fetch Queue", NULL);
+    [self executeFetchRequest:request returnManagedObjectIDs:returnIDs successCallbackQueue:successCallbackQueue failureCallbackQueue:failureCallbackQueue options:nil onSuccess:successBlock onFailure:failureBlock];
+}
+
+- (void)executeFetchRequest:(NSFetchRequest *)request returnManagedObjectIDs:(BOOL)returnIDs successCallbackQueue:(dispatch_queue_t)successCallbackQueue failureCallbackQueue:(dispatch_queue_t)failureCallbackQueue options:(SMRequestOptions *)options onSuccess:(SMResultsSuccessBlock)successBlock onFailure:(SMFailureBlock)failureBlock
+{
     __block NSManagedObjectContext *mainContext = [self concurrencyType] == NSMainQueueConcurrencyType ? self : self.parentContext;
     
     // Error checks
     if ([mainContext concurrencyType] != NSMainQueueConcurrencyType) {
-        [NSException raise:SMExceptionIncompatibleObject format:@"Method saveAndWait: main context should be of type NSMainQueueConcurrencyType"];
+        [NSException raise:SMExceptionIncompatibleObject format:@"Method executeFetchRequest: main context should be of type NSMainQueueConcurrencyType"];
     }
     
-    dispatch_async(aQueue, ^{
+    NSManagedObjectContext *backgroundContext = mainContext.parentContext;
+    
+    [backgroundContext performBlock:^{
         NSError *fetchError = nil;
-        NSManagedObjectContext *backgroundContext = mainContext.parentContext;
         NSFetchRequest *fetchCopy = [request copy];
         [fetchCopy setResultType:NSManagedObjectIDResultType];
         
-        NSArray *resultsOfFetch = [backgroundContext executeFetchRequest:fetchCopy error:&fetchError];
+        if (options) {
+            SMRequestOptions *newOptions = options;
+            NSMutableDictionary *threadDict = [[NSThread currentThread] threadDictionary];
+            [threadDict setObject:newOptions forKey:SMRequestSpecificOptions];
+        }
+        
+        __block NSArray *resultsOfFetch = [backgroundContext executeFetchRequest:fetchCopy error:&fetchError];
+        
+        if (options) {
+            [[[NSThread currentThread] threadDictionary] removeObjectForKey:SMRequestSpecificOptions];
+        }
+        
         if (fetchError) {
-            if (failureBlock) {
-                dispatch_async(failureCallbackQueue, ^{
-                    failureBlock(fetchError);
-                });
-            }
+            [self callFailureBlock:failureBlock queue:failureCallbackQueue error:fetchError];
         } else {
             if (successBlock) {
                 if (returnIDs) {
@@ -255,18 +309,33 @@
                         successBlock(resultsOfFetch);
                     });
                 } else {
-                    __block NSArray *managedObjectsToReturn = [resultsOfFetch map:^id(id item) {
-                        NSManagedObject *objectFromCurrentContext = [self objectWithID:item];
-                        [self refreshObject:objectFromCurrentContext mergeChanges:YES];
-                        return objectFromCurrentContext;
-                    }];
                     dispatch_async(successCallbackQueue, ^{
+                        
+                        NSManagedObjectContext *context = nil;
+                        
+                        if ([NSThread isMainThread]) {
+                            context = mainContext;
+                            
+                        } else {
+                            context = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSPrivateQueueConcurrencyType];
+                            [context setPersistentStoreCoordinator:[backgroundContext persistentStoreCoordinator]];
+                            
+                        }
+                        
+                        __block NSArray *managedObjectsToReturn = [resultsOfFetch map:^id(id item) {
+                            NSManagedObject *objectFromCurrentContext = [context objectWithID:item];
+                            [context refreshObject:objectFromCurrentContext mergeChanges:YES];
+                            return objectFromCurrentContext;
+                        }];
+                        
                         successBlock(managedObjectsToReturn);
+                        
                     });
                 }
             }
         }
-    });
+        
+    }];
     
 }
 
@@ -277,13 +346,16 @@
 
 - (NSArray *)executeFetchRequestAndWait:(NSFetchRequest *)request returnManagedObjectIDs:(BOOL)returnIDs error:(NSError *__autoreleasing *)error
 {
-    dispatch_queue_t queue = dispatch_queue_create("Fetch And Wait Queue", NULL);
-    dispatch_group_t group = dispatch_group_create();
+    return [self executeFetchRequestAndWait:request returnManagedObjectIDs:returnIDs options:nil error:error];
+}
+
+- (NSArray *)executeFetchRequestAndWait:(NSFetchRequest *)request returnManagedObjectIDs:(BOOL)returnIDs options:(SMRequestOptions *)options error:(NSError *__autoreleasing *)error
+{
     __block NSManagedObjectContext *mainContext = [self concurrencyType] == NSMainQueueConcurrencyType ? self : self.parentContext;
     
     // Error checks
     if ([mainContext concurrencyType] != NSMainQueueConcurrencyType) {
-        [NSException raise:SMExceptionIncompatibleObject format:@"Method saveAndWait: main context should be of type NSMainQueueConcurrencyType"];
+        [NSException raise:SMExceptionIncompatibleObject format:@"Method executeFetchRequestAndWait: main context should be of type NSMainQueueConcurrencyType"];
     }
     
     __block NSArray *resultsOfFetch = nil;
@@ -298,16 +370,24 @@
     }
     
     [backgroundContext performBlockAndWait:^{
+        
+        if (options) {
+            SMRequestOptions *newOptions = options;
+            NSMutableDictionary *threadDict = [[NSThread currentThread] threadDictionary];
+            [threadDict setObject:newOptions forKey:SMRequestSpecificOptions];
+        }
+        
         resultsOfFetch = [backgroundContext executeFetchRequest:fetchCopy error:&fetchError];
+        
+        if (options) {
+            [[[NSThread currentThread] threadDictionary] removeObjectForKey:SMRequestSpecificOptions];
+        }
     }];
     
     if (fetchError && error != NULL) {
         *error = fetchError;
         return nil;
     }
-    
-    dispatch_release(queue);
-    dispatch_release(group);
     
     if (returnIDs) {
         return resultsOfFetch;
@@ -320,6 +400,29 @@
     }
 }
 
-
+- (void)callFailureBlock:(SMFailureBlock)failureBlock queue:(dispatch_queue_t)queue error:(NSError *)saveError {
+    
+    if ([saveError code] == SMErrorRefreshTokenFailed) {
+        NSDictionary *userInfo = [saveError userInfo];
+        SMTokenRefreshFailureBlock tokenRefreshBlock = [userInfo objectForKey:SMFailedRefreshBlock];
+        if (tokenRefreshBlock) {
+            // Remove refresh block from userInfo
+            NSMutableDictionary *newUserInfo = [userInfo mutableCopy];
+            [newUserInfo removeObjectForKey:SMFailedRefreshBlock];
+            NSError *newError = [NSError errorWithDomain:[saveError domain] code:[saveError code] userInfo:newUserInfo];
+            tokenRefreshBlock(newError, failureBlock);
+        } else {
+            if (failureBlock) {
+                dispatch_async(queue, ^{
+                    failureBlock(saveError);
+                });
+            }
+        }
+    } else if (failureBlock) {
+        dispatch_async(queue, ^{
+            failureBlock(saveError);
+        });
+    }
+}
 
 @end

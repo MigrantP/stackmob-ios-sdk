@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 StackMob
+ * Copyright 2012-2013 StackMob
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,8 @@ typedef id(^MapBlock)(id item);
  @param block The block to apply to each object in the array.
  
  @return A new array where the provided block has been applied to each object.
+ 
+ @since Available in iOS SDK 1.0.0 and later.
  */
 - (NSArray *)map:(MapBlock)block;
 

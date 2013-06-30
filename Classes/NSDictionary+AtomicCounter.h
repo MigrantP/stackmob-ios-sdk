@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 StackMob
+ * Copyright 2012-2013 StackMob
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@
  
  @param field The field to increment.
  @param value The amount to increment by. Can be positive or negative.
+ @since Available in iOS SDK 1.0.0 and later.
  */
 - (NSDictionary *)dictionaryByAppendingCounterUpdateForField:(NSString *)field by:(int)value;
 @end
@@ -42,6 +43,7 @@
  
  @param field The field to increment.
  @param value The amount to increment by. Can be positive or negative.
+ @since Available in iOS SDK 1.0.0 and later.
  */
 - (void)updateCounterForField:(NSString *)field by:(int)value;
 @end

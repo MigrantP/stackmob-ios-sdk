@@ -1,5 +1,5 @@
 /**
- * Copyright 2012 StackMob
+ * Copyright 2012-2013 StackMob
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -336,7 +336,7 @@ describe(@"perform custom code request", ^{
         });
         it(@"should perform the request", ^{
             [[dataStore.session.regularOAuthClient should] receive:@selector(customCodeRequest:options:)];
-            [[dataStore should] receive:@selector(queueRequest:options:successCallbackQueue:failureCallbackQueue:onSuccess:onFailure:)];
+            [[dataStore should] receive:@selector(queueCustomCodeRequest:customCodeRequestInstance:options:successCallbackQueue:failureCallbackQueue:onSuccess:onFailure:)];
             [dataStore performCustomCodeRequest:customCodeRequest onSuccess:^(NSURLRequest *request, NSHTTPURLResponse *response, id JSON) {
                 
             } onFailure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id JSON) {

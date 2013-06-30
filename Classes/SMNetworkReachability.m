@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 StackMob
+ * Copyright 2012-2013 StackMob
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,19 +102,19 @@ typedef SMCachePolicy (^SMCachePolicyReturnBlock)(SMNetworkStatus status);
 {
     switch (status) {
         case AFNetworkReachabilityStatusReachableViaWiFi:
-            return Reachable;
+            return SMNetworkStatusReachable;
             break;
         case AFNetworkReachabilityStatusNotReachable:
-            return NotReachable;
+            return SMNetworkStatusNotReachable;
             break;
         case AFNetworkReachabilityStatusUnknown:
-            return Unknown;
+            return SMNetworkStatusUnknown;
             break;
         case AFNetworkReachabilityStatusReachableViaWWAN:
-            return Reachable;
+            return SMNetworkStatusReachable;
             break;
         default:
-            return Unknown;
+            return SMNetworkStatusUnknown;
             break;
     }
 }

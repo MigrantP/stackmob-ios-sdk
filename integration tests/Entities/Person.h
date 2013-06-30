@@ -1,5 +1,5 @@
-/**
- * Copyright 2012 StackMob
+/*
+ * Copyright 2012-2013 StackMob
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
-#import "StackMob.h"
 
 @class Superpower;
 
@@ -30,6 +29,7 @@
 @property (nonatomic, retain) NSSet *favorites;
 @property (nonatomic, retain) NSSet *interests;
 @property (nonatomic, retain) Superpower *superpower;
+@property (nonatomic, retain) NSSet *todos;
 @end
 
 @interface Person (CoreDataGeneratedAccessors)
@@ -38,10 +38,12 @@
 - (void)removeFavoritesObject:(NSManagedObject *)value;
 - (void)addFavorites:(NSSet *)values;
 - (void)removeFavorites:(NSSet *)values;
-
 - (void)addInterestsObject:(NSManagedObject *)value;
 - (void)removeInterestsObject:(NSManagedObject *)value;
 - (void)addInterests:(NSSet *)values;
 - (void)removeInterests:(NSSet *)values;
-
+- (void)addTodosObject:(NSManagedObject *)value;
+- (void)removeTodosObject:(NSManagedObject *)value;
+- (void)addTodos:(NSSet *)values;
+- (void)removeTodos:(NSSet *)values;
 @end

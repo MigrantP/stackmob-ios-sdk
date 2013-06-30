@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 StackMob
+ * Copyright 2012-2013 StackMob
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,23 @@ extern NSString *const SMCachePurgeManagedObjectID;
 extern NSString *const SMCachePurgeArrayOfManageObjectIDs;
 extern NSString *const SMCachePurgeOfObjectsFromEntityName;
 
+extern NSString *const SMThreadDefaultOptions;
+extern NSString *const SMRequestSpecificOptions;
+
+extern NSString *const SMFailedRefreshBlock;
+
+extern NSString *const SMMarkObjectAsSyncedNotification;
+extern NSString *const SMMarkArrayOfObjectsAsSyncedNotification;
+extern NSString *const SMSyncWithServerNotification;
+
+extern NSString *const SMLastModDateKey;
+
+extern NSString *const SMDirtyInsertedObjectKeys;
+extern NSString *const SMDirtyUpdatedObjectKeys;
+extern NSString *const SMDirtyDeletedObjectKeys;
+
 extern BOOL SM_CORE_DATA_DEBUG;
+extern BOOL SM_ALLOW_CACHE_RESET;
 extern unsigned int SM_MAX_LOG_LENGTH;
 
 /**
@@ -61,5 +77,8 @@ extern unsigned int SM_MAX_LOG_LENGTH;
  @note You should never have to instantiate your own instance of `SMIncrementalStore`.  It is used when creating a persistent store coordinator in `SMCoreDataStore` so that `NSPersistentStore` methods divert to the overridden versions in this class. 
  */
 @interface SMIncrementalStore : NSIncrementalStore
+
+
+- (BOOL)SM_checkNetworkAvailability;
 
 @end

@@ -1,5 +1,5 @@
 /**
- * Copyright 2012 StackMob
+ * Copyright 2012-2013 StackMob
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,9 @@ describe(@"SMRelationshipHeaders", ^{
     
     beforeEach(^{
         if (mom == nil) {
-           mom = [NSManagedObjectModel mergedModelFromBundles:[NSBundle allBundles]]; 
+            NSBundle *classBundle = [NSBundle bundleForClass:[self class]];
+            NSURL *modelURL = [classBundle URLForResource:@"SMCoreDataIntegrationTest" withExtension:@"momd"];
+            mom = [[NSManagedObjectModel alloc] initWithContentsOfURL:modelURL];
         }
         
         SMClient *client = [[SMClient alloc] initWithAPIVersion:@"0" publicKey:@"XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"];
@@ -52,13 +54,13 @@ describe(@"SMRelationshipHeaders", ^{
         });
         
         it(@"Should contain no relationship headers", ^{
-            NSDictionary *dict = [aPerson SMDictionarySerialization];
+            NSDictionary *dict = [aPerson SMDictionarySerialization:NO sendLocalTimestamps:NO];
             NSLog(@"serialized dict is %@", dict);
             NSLog(@"%@: %@", StackMobRelationsHeader, [dict objectForKey:StackMobRelationsHeader]);
             [[theValue([dict count]) should] equal:theValue(1)];
         });
         it(@"Should not include relationships in the serialized dictionary", ^{
-            NSDictionary *dict = [aPerson SMDictionarySerialization];
+            NSDictionary *dict = [aPerson SMDictionarySerialization:NO sendLocalTimestamps:NO];
             NSLog(@"serialized dict is %@", dict);
             [[[dict objectForKey:@"SerializedDict"] objectForKey:@"superpower"] shouldBeNil];
             [[[dict objectForKey:@"SerializedDict"] objectForKey:@"interests"] shouldBeNil];
@@ -66,7 +68,7 @@ describe(@"SMRelationshipHeaders", ^{
 
         });
     });
-    
+    /*
     describe(@"Headers for one-to-one relationships", ^{
         __block NSManagedObject *aPerson = nil;
         __block NSManagedObject *aSuperpower = nil;
@@ -83,19 +85,19 @@ describe(@"SMRelationshipHeaders", ^{
         });
         
         it(@"Should contain a relationship headers", ^{
-            NSDictionary *dict = [aPerson SMDictionarySerialization];
+            NSDictionary *dict = [aPerson SMDictionarySerialization:NO];
             NSLog(@"serialized dict is %@", dict);
             NSLog(@"%@: %@", StackMobRelationsHeader, [dict objectForKey:StackMobRelationsHeader]);
             [[[dict objectForKey:StackMobRelationsHeader] should] equal:@"superpower=superpower&superpower.person=person"];
             
-            dict = [aSuperpower SMDictionarySerialization];
+            dict = [aSuperpower SMDictionarySerialization:NO];
             NSLog(@"serialized dict is %@", dict);
             NSLog(@"%@: %@", StackMobRelationsHeader, [dict objectForKey:StackMobRelationsHeader]);
             [[[dict objectForKey:StackMobRelationsHeader] should] equal:@"person=person&person.superpower=superpower"];
             
         });
         it(@"Should include relationships in the serialized dictionary for superpower", ^{
-            NSDictionary *dict = [aPerson SMDictionarySerialization];
+            NSDictionary *dict = [aPerson SMDictionarySerialization:NO];
             NSLog(@"serialized dict is %@", dict);
             [[[dict objectForKey:@"SerializedDict"] objectForKey:@"superpower"] shouldNotBeNil];
             [[[dict objectForKey:@"SerializedDict"] objectForKey:@"interests"] shouldBeNil];
@@ -120,19 +122,19 @@ describe(@"SMRelationshipHeaders", ^{
         });
         
         it(@"Should contain a relationship headers", ^{
-            NSDictionary *dict = [aPerson SMDictionarySerialization];
+            NSDictionary *dict = [aPerson SMDictionarySerialization:YES];
             NSLog(@"serialized dict is %@", dict);
             NSLog(@"%@: %@", StackMobRelationsHeader, [dict objectForKey:StackMobRelationsHeader]);
             [[[dict objectForKey:StackMobRelationsHeader] should] equal:@"interests=interest"];
             
-            dict = [anInterest SMDictionarySerialization];
+            dict = [anInterest SMDictionarySerialization:YES];
             NSLog(@"serialized dict is %@", dict);
             NSLog(@"%@: %@", StackMobRelationsHeader, [dict objectForKey:StackMobRelationsHeader]);
             [[[dict objectForKey:StackMobRelationsHeader] should] equal:@"person=person&person.interests=interest"];
             
         });
         it(@"Should include relationships in the serialized dictionary for superpower", ^{
-            NSDictionary *dict = [aPerson SMDictionarySerialization];
+            NSDictionary *dict = [aPerson SMDictionarySerialization:YES];
             NSLog(@"serialized dict is %@", dict);
             [[[dict objectForKey:@"SerializedDict"] objectForKey:@"superpower"] shouldBeNil];
             [[[dict objectForKey:@"SerializedDict"] objectForKey:@"interests"] shouldNotBeNil];
@@ -161,19 +163,19 @@ describe(@"SMRelationshipHeaders", ^{
         });
         
         it(@"Should contain a relationship headers", ^{
-            NSDictionary *dict = [aPerson SMDictionarySerialization];
+            NSDictionary *dict = [aPerson SMDictionarySerialization:YES];
             NSLog(@"serialized dict is %@", dict);
             NSLog(@"%@: %@", StackMobRelationsHeader, [dict objectForKey:StackMobRelationsHeader]);
             [[[dict objectForKey:StackMobRelationsHeader] should] equal:@"favorites=favorite"];
             
-            dict = [aFavorite SMDictionarySerialization];
+            dict = [aFavorite SMDictionarySerialization:YES];
             NSLog(@"serialized dict is %@", dict);
             NSLog(@"%@: %@", StackMobRelationsHeader, [dict objectForKey:StackMobRelationsHeader]);
             [[[dict objectForKey:StackMobRelationsHeader] should] equal:@"persons=person"];
             
         });
         it(@"Should include relationships in the serialized dictionary for superpower", ^{
-            NSDictionary *dict = [aPerson SMDictionarySerialization];
+            NSDictionary *dict = [aPerson SMDictionarySerialization:YES];
             NSLog(@"serialized dict is %@", dict);
             [[[dict objectForKey:@"SerializedDict"] objectForKey:@"superpower"] shouldBeNil];
             [[[dict objectForKey:@"SerializedDict"] objectForKey:@"interests"] shouldBeNil];
@@ -204,31 +206,31 @@ describe(@"SMRelationshipHeaders", ^{
         });
         
         it(@"Should contain a relationship headers", ^{
-            NSDictionary *dict = [aPerson SMDictionarySerialization];
+            NSDictionary *dict = [aPerson SMDictionarySerialization:NO];
             NSLog(@"serialized dict is %@", dict);
             NSLog(@"%@: %@", StackMobRelationsHeader, [dict objectForKey:StackMobRelationsHeader]);
             [[[dict objectForKey:StackMobRelationsHeader] should] equal:@"superpower=superpower&superpower.person=person&interests=interest"];
             
-            dict = [aSuperpower SMDictionarySerialization];
+            dict = [aSuperpower SMDictionarySerialization:NO];
             NSLog(@"serialized dict is %@", dict);
             NSLog(@"%@: %@", StackMobRelationsHeader, [dict objectForKey:StackMobRelationsHeader]);
             [[[dict objectForKey:StackMobRelationsHeader] should] equal:@"person=person&person.superpower=superpower&person.interests=interest"];
             
-            dict = [anInterest SMDictionarySerialization];
+            dict = [anInterest SMDictionarySerialization:NO];
             NSLog(@"serialized dict is %@", dict);
             NSLog(@"%@: %@", StackMobRelationsHeader, [dict objectForKey:StackMobRelationsHeader]);
             [[[dict objectForKey:StackMobRelationsHeader] should] equal:@"person=person&person.superpower=superpower&person.superpower.person=person&person.interests=interest"];
             
         });
         it(@"Should include relationships in the serialized dictionary for superpower", ^{
-            NSDictionary *dict = [aPerson SMDictionarySerialization];
+            NSDictionary *dict = [aPerson SMDictionarySerialization:NO];
             NSLog(@"serialized dict is %@", dict);
             [[[dict objectForKey:@"SerializedDict"] objectForKey:@"superpower"] shouldNotBeNil];
             [[[dict objectForKey:@"SerializedDict"] objectForKey:@"interests"] shouldNotBeNil];
             [[[dict objectForKey:@"SerializedDict"] objectForKey:@"favorites"] shouldBeNil];
         });
     });
-    
+    */
 });
 
 SPEC_END

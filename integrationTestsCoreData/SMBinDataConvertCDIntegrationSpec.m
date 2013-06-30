@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 StackMob
+ * Copyright 2012-2013 StackMob
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,10 @@ describe(@"SMBinDataConvertCDIntegration", ^{
         client = [SMIntegrationTestHelpers defaultClient];
         [SMClient setDefaultClient:client];
         [client setUserSchema:@"user3"];
-        cds = [client coreDataStoreWithManagedObjectModel:[NSManagedObjectModel mergedModelFromBundles:[NSBundle allBundles]]];
+        NSBundle *classBundle = [NSBundle bundleForClass:[self class]];
+        NSURL *modelURL = [classBundle URLForResource:@"SMCoreDataIntegrationTest" withExtension:@"momd"];
+        NSManagedObjectModel *aModel = [[NSManagedObjectModel alloc] initWithContentsOfURL:modelURL];
+        cds = [client coreDataStoreWithManagedObjectModel:aModel];
         moc = [cds contextForCurrentThread];
         [[client.session.networkMonitor stubAndReturn:theValue(1)] currentNetworkStatus];
     });

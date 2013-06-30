@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 StackMob
+ * Copyright 2012-2013 StackMob
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,42 +15,69 @@
  */
 
 @class SMRequestOptions;
+@class SMGeoPoint;
+@class AFHTTPRequestOperation;
 
 /**
  A success block that returns nothing.
+ 
+ @since Available in iOS SDK 1.0.0 and later.
  */
 typedef void (^SMSuccessBlock)();
 
 /**
  The block parameters expected for a success response which returns an `NSDictionary`.
+ 
+ @since Available in iOS SDK 1.0.0 and later.
  */
 typedef void (^SMResultSuccessBlock)(NSDictionary *result);
 
 /**
  The block parameters expected for a success response which returns an `NSArray`.
+ 
+ @since Available in iOS SDK 1.0.0 and later.
  */
 typedef void (^SMResultsSuccessBlock)(NSArray *results);
 
 /**
  The block parameters expected for any failure response.
+ 
+ @since Available in iOS SDK 1.0.0 and later.
  */
 typedef void (^SMFailureBlock)(NSError *error);
 
 /**
- The block parameters expected for a success response that needs the raw request, response, and JSON result.
+ The block parameters expected for a success response which returns an `SMGeoPoint`.
+ 
+ @since Available in iOS SDK 1.3.0 and later.
  */
-typedef void (^SMFullResponseSuccessBlock)(NSURLRequest *request, NSHTTPURLResponse *response, id JSON);
+typedef void (^SMGeoPointSuccessBlock)(SMGeoPoint *geoPoint);
 
 /**
- The block parameters expected for a failure response that needs the raw request, response, and JSON result.
+ The block parameters expected for a success response that needs the raw request, response, and response body.
+ 
+ @note Parameter 'id JSON' was changed to 'id responseBody' in v2.0.0.
+ 
+ @since Available in iOS SDK 1.0.0 and later.
  */
-typedef void (^SMFullResponseFailureBlock)(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id JSON);
+typedef void (^SMFullResponseSuccessBlock)(NSURLRequest *request, NSHTTPURLResponse *response, id responseBody);
+
+/**
+ The block parameters expected for a failure response that needs the raw request, response, and response body.
+ 
+ @note Parameter 'id JSON' was changed to 'id responseBody' in v2.0.0.
+ 
+ @since Available in iOS SDK 1.0.0 and later.
+ */
+typedef void (^SMFullResponseFailureBlock)(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id responseBody);
 
 /**
  The block parameters expected for a success response from a call to the Datastore which returns the full object and schema. 
  
  @param theObject An updated dictionary representation of the requested object.
  @param schema The schema to which the object belongs.
+ 
+ @since Available in iOS SDK 1.0.0 and later.
  */
 typedef void (^SMDataStoreSuccessBlock)(NSDictionary* theObject, NSString *schema);
 
@@ -59,6 +86,8 @@ typedef void (^SMDataStoreSuccessBlock)(NSDictionary* theObject, NSString *schem
  
  @param theObjectId The object id used in this operation.
  @param schema The schema to which the object belongs.
+ 
+ @since Available in iOS SDK 1.0.0 and later.
  */
 typedef void (^SMDataStoreObjectIdSuccessBlock)(NSString* theObjectId, NSString *schema);
 
@@ -68,6 +97,8 @@ typedef void (^SMDataStoreObjectIdSuccessBlock)(NSString* theObjectId, NSString 
  @param theError An error object describing the failure.
  @param theObject The dictionary representation of the object sent as part of the failed operation.
  @param schema The schema to which the object belongs.
+ 
+ @since Available in iOS SDK 1.0.0 and later.
  */
 typedef void (^SMDataStoreFailureBlock)(NSError *theError, NSDictionary* theObject, NSString *schema);
 
@@ -77,6 +108,8 @@ typedef void (^SMDataStoreFailureBlock)(NSError *theError, NSDictionary* theObje
  @param theError An error object describing the failure.
  @param theObjectId The object id sent as part of the failed operation.
  @param schema The schema to which the object belongs.
+ 
+ @since Available in iOS SDK 1.0.0 and later.
  */
 typedef void (^SMDataStoreObjectIdFailureBlock)(NSError *theError, NSString* theObjectId, NSString *schema);
 
@@ -84,6 +117,8 @@ typedef void (^SMDataStoreObjectIdFailureBlock)(NSError *theError, NSString* the
  The block parameters expected for a success response from query count call.
  
  @param count The number of objects returned by the query.
+ 
+ @since Available in iOS SDK 1.0.0 and later.
  */
 typedef void (^SMCountSuccessBlock)(NSNumber *count);
 
@@ -93,12 +128,14 @@ typedef void (^SMCountSuccessBlock)(NSNumber *count);
  @param request The original request in `NSURLRequest` form.
  @param response The response from the server.
  @param error The error, if any.
- @param JSON the JSON result from the response.
+ @param responseBody the body of the response.
  @param options The SMRequestOption instance passed to the request.
  @param successBlock The block to invoke on success.
  @param failureBlock The block to invoke on failure.
+ 
+ @since Available in iOS SDK 1.0.0 and later.
  */
-typedef void (^SMFailureRetryBlock)(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id JSON, SMRequestOptions *options, SMFullResponseSuccessBlock successBlock, SMFullResponseFailureBlock failureBlock);
+typedef void (^SMFailureRetryBlock)(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id responseBody, SMRequestOptions *options, SMFullResponseSuccessBlock successBlock, SMFullResponseFailureBlock failureBlock);
 
 /**
  Used internally for requests that fail during a core data save.
@@ -108,6 +145,22 @@ typedef void (^SMFailureRetryBlock)(NSURLRequest *request, NSHTTPURLResponse *re
  @param theObject The original object being saved.
  @param theOptions The SMRequestOption instance passed to the request.
  @param originalSuccessBlock The block passed to original request.
+ 
+ @since Available in iOS SDK 1.2.0 and later.
  */
 typedef void (^SMCoreDataSaveFailureBlock)(NSURLRequest *theRequest, NSError *theError, NSDictionary *theObject, SMRequestOptions *theOptions, SMResultSuccessBlock originalSuccessBlock);
+
+/**
+ Used interally for custom code requests.
+ 
+ @since Available in iOS SDK 2.0.0 and later.
+ */
+typedef void (^AFHTTPOperationSuccessBlock)(AFHTTPRequestOperation *operation, id responseObject);
+
+/**
+ Used interally for custom code requests.
+ 
+ @since Available in iOS SDK 2.0.0 and later.
+ */
+typedef void (^AFHTTPOperationFailureBlock)(AFHTTPRequestOperation *operation, NSError *error);
 

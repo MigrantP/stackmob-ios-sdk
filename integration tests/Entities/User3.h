@@ -1,5 +1,5 @@
-/**
- * Copyright 2012 StackMob
+/*
+ * Copyright 2012-2013 StackMob
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,5 +21,15 @@
 @interface User3 : SMUserManagedObject
 
 @property (nonatomic, retain) NSString * username;
+@property (nonatomic, retain) NSString * email;
+@property (nonatomic, retain) NSSet *todos;
+@end
+
+@interface User3 (CoreDataGeneratedAccessors)
+
+- (void)addTodosObject:(NSManagedObject *)value;
+- (void)removeTodosObject:(NSManagedObject *)value;
+- (void)addTodos:(NSSet *)values;
+- (void)removeTodos:(NSSet *)values;
 
 @end

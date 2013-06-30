@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 StackMob
+ * Copyright 2012-2013 StackMob
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 
 #define CC_NO_PARAM_METHOD_NAME @"hello_world"
 #define CC_PARAM_METHOD_NAME @"hello_world_params"
+#define CC_CONTENT_TYPES_NAME @"content_types_test"
 
 SPEC_BEGIN(SMCusCodeReqIntegrationSpec)
 
@@ -259,5 +260,169 @@ describe(@"SMCusCodeReqIntegration", ^{
 });
 
 #endif
+
+describe(@"Testing CC with content types", ^{
+    __block SMClient *client = nil;
+    beforeEach(^{
+        client =  [SMIntegrationTestHelpers defaultClient];
+        [client shouldNotBeNil];
+    });
+    it(@"String body type", ^{
+        SMCustomCodeRequest *cc_request = [[SMCustomCodeRequest alloc]
+                                        initGetRequestWithMethod:@"content_type_tests"];
+        
+        SMRequestOptions *options = [SMRequestOptions options];
+        [options setHeaders:[NSDictionary dictionaryWithObjectsAndKeys:@"string", @"body_type", nil]];
+        
+        dispatch_group_t group = dispatch_group_create();
+        dispatch_queue_t queue = dispatch_queue_create("queue", NULL);
+        dispatch_group_enter(group);
+        
+        [[client dataStore] performCustomCodeRequest:cc_request options:options successCallbackQueue:queue failureCallbackQueue:queue onSuccess:^(NSURLRequest *request, NSHTTPURLResponse *response, id responseBody) {
+            
+            [[theValue([responseBody isKindOfClass:[NSString class]]) should] beYes];
+            [[responseBody should] equal:@"string_result"];
+            dispatch_group_leave(group);
+            
+        } onFailure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id responseBody){
+            
+            [error shouldBeNil];
+            dispatch_group_leave(group);
+
+        }];
+        
+        dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
+    });
+    it(@"Byte body type", ^{
+        SMCustomCodeRequest *cc_request = [[SMCustomCodeRequest alloc]
+                                           initGetRequestWithMethod:@"content_type_tests"];
+        
+        SMRequestOptions *options = [SMRequestOptions options];
+        [options setHeaders:[NSDictionary dictionaryWithObjectsAndKeys:@"byte_arr", @"body_type", nil]];
+        
+        dispatch_group_t group = dispatch_group_create();
+        dispatch_queue_t queue = dispatch_queue_create("queue", NULL);
+        dispatch_group_enter(group);
+        
+        [[client dataStore] performCustomCodeRequest:cc_request options:options successCallbackQueue:queue failureCallbackQueue:queue onSuccess:^(NSURLRequest *request, NSHTTPURLResponse *response, id responseBody) {
+            
+            [[theValue([responseBody isKindOfClass:[NSData class]]) should] beYes];
+            dispatch_group_leave(group);
+            
+        } onFailure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id responseBody){
+            
+            [error shouldBeNil];
+            dispatch_group_leave(group);
+            
+        }];
+        
+        dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
+    });
+    it(@"Pic body type", ^{
+        SMCustomCodeRequest *cc_request = [[SMCustomCodeRequest alloc]
+                                           initGetRequestWithMethod:@"content_type_tests"];
+        
+        cc_request.responseContentType = @"image/jpeg";
+        
+        SMRequestOptions *options = [SMRequestOptions options];
+        [options setHeaders:[NSDictionary dictionaryWithObjectsAndKeys:@"pic", @"body_type", nil]];
+        
+        dispatch_group_t group = dispatch_group_create();
+        dispatch_queue_t queue = dispatch_queue_create("queue", NULL);
+        dispatch_group_enter(group);
+        
+        [[client dataStore] performCustomCodeRequest:cc_request options:options successCallbackQueue:queue failureCallbackQueue:queue onSuccess:^(NSURLRequest *request, NSHTTPURLResponse *response, id responseBody) {
+            
+            [[theValue([responseBody isKindOfClass:[NSData class]]) should] beYes];
+            dispatch_group_leave(group);
+            
+        } onFailure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id responseBody){
+            
+            [error shouldBeNil];
+            dispatch_group_leave(group);
+            
+        }];
+        
+        dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
+    });
+    it(@"HTML body type", ^{
+        SMCustomCodeRequest *cc_request = [[SMCustomCodeRequest alloc]
+                                           initGetRequestWithMethod:@"content_type_tests"];
+        
+        cc_request.responseContentType = @"text/html";
+        
+        SMRequestOptions *options = [SMRequestOptions options];
+        [options setHeaders:[NSDictionary dictionaryWithObjectsAndKeys:@"html", @"body_type", nil]];
+        
+        dispatch_group_t group = dispatch_group_create();
+        dispatch_queue_t queue = dispatch_queue_create("queue", NULL);
+        dispatch_group_enter(group);
+        
+        [[client dataStore] performCustomCodeRequest:cc_request options:options successCallbackQueue:queue failureCallbackQueue:queue onSuccess:^(NSURLRequest *request, NSHTTPURLResponse *response, id responseBody) {
+            
+            [[theValue([responseBody isKindOfClass:[NSData class]]) should] beYes];
+            dispatch_group_leave(group);
+            
+        } onFailure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id responseBody){
+            
+            [error shouldBeNil];
+            dispatch_group_leave(group);
+            
+        }];
+        
+        dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
+    });
+    it(@"map body type", ^{
+        SMCustomCodeRequest *cc_request = [[SMCustomCodeRequest alloc]
+                                           initGetRequestWithMethod:@"content_type_tests"];
+        
+        SMRequestOptions *options = [SMRequestOptions options];
+        [options setHeaders:[NSDictionary dictionaryWithObjectsAndKeys:@"map", @"body_type", nil]];
+        
+        dispatch_group_t group = dispatch_group_create();
+        dispatch_queue_t queue = dispatch_queue_create("queue", NULL);
+        dispatch_group_enter(group);
+        
+        [[client dataStore] performCustomCodeRequest:cc_request options:options successCallbackQueue:queue failureCallbackQueue:queue onSuccess:^(NSURLRequest *request, NSHTTPURLResponse *response, id responseBody) {
+            
+            [[theValue([responseBody isKindOfClass:[NSDictionary class]]) should] beYes];
+            dispatch_group_leave(group);
+            
+        } onFailure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id responseBody){
+            
+            [error shouldBeNil];
+            dispatch_group_leave(group);
+            
+        }];
+        
+        dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
+    });
+    it(@"Set accept header", ^{
+        SMCustomCodeRequest *cc_request = [[SMCustomCodeRequest alloc]
+                                           initGetRequestWithMethod:@"content_type_tests"];
+
+        SMRequestOptions *options = [SMRequestOptions options];
+        [options setHeaders:[NSDictionary dictionaryWithObjectsAndKeys:@"application/something; version=0", @"Accept", @"map", @"body_type", nil]];
+        
+        dispatch_group_t group = dispatch_group_create();
+        dispatch_queue_t queue = dispatch_queue_create("queue", NULL);
+        dispatch_group_enter(group);
+        
+        [[client dataStore] performCustomCodeRequest:cc_request options:options successCallbackQueue:queue failureCallbackQueue:queue onSuccess:^(NSURLRequest *request, NSHTTPURLResponse *response, id responseBody) {
+            
+            [[[[request allHTTPHeaderFields] objectForKey:@"Accept"] should] equal:@"application/something; version=0"];
+            [[theValue([responseBody isKindOfClass:[NSDictionary class]]) should] beYes];
+            dispatch_group_leave(group);
+            
+        } onFailure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error, id responseBody){
+            
+            [error shouldBeNil];
+            dispatch_group_leave(group);
+            
+        }];
+        
+        dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
+    });
+});
 
 SPEC_END

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 StackMob
+ * Copyright 2012-2013 StackMob
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,10 +72,10 @@
     return [[self entity] SMFieldNameForProperty:[[[self entity] propertiesByName] objectForKey:[self primaryKeyField]]];
 }
 
-- (NSDictionary *)SMDictionarySerialization
+- (NSDictionary *)SMDictionarySerialization:(BOOL)serializeFullObjects sendLocalTimestamps:(BOOL)sendLocalTimestamps
 {
     NSMutableArray *arrayOfRelationshipHeaders = [NSMutableArray array];
-    NSMutableDictionary *contentsOfSerializedObject = [NSMutableDictionary dictionaryWithObject:[self SMDictionarySerializationByTraversingRelationshipsExcludingObjects:nil entities:nil relationshipHeaderValues:&arrayOfRelationshipHeaders relationshipKeyPath:nil] forKey:@"SerializedDict"];
+    NSMutableDictionary *contentsOfSerializedObject = [NSMutableDictionary dictionaryWithObject:[self SMDictionarySerializationByTraversingRelationshipsExcludingObjects:nil entities:nil relationshipHeaderValues:&arrayOfRelationshipHeaders relationshipKeyPath:nil serializeFullObjects:serializeFullObjects sendLocalTimestamps:sendLocalTimestamps] forKey:@"SerializedDict"];
     
     if ([arrayOfRelationshipHeaders count] > 0) {
         
@@ -87,7 +87,7 @@
     
 }
 
-- (NSDictionary *)SMDictionarySerializationByTraversingRelationshipsExcludingObjects:(NSMutableSet *)processedObjects entities:(NSMutableSet *)processedEntities relationshipHeaderValues:(NSMutableArray *__autoreleasing *)values relationshipKeyPath:(NSString *)keyPath
+- (NSDictionary *)SMDictionarySerializationByTraversingRelationshipsExcludingObjects:(NSMutableSet *)processedObjects entities:(NSMutableSet *)processedEntities relationshipHeaderValues:(NSMutableArray *__autoreleasing *)values relationshipKeyPath:(NSString *)keyPath serializeFullObjects:(BOOL)serializeFullObjects sendLocalTimestamps:(BOOL)sendLocalTimestamps
 {
     if (processedObjects == nil) {
         processedObjects = [NSMutableSet set];
@@ -101,35 +101,50 @@
     NSEntityDescription *selfEntity = [self entity];
     
     NSMutableDictionary *objectDictionary = [NSMutableDictionary dictionary];
-    [self.changedValues enumerateKeysAndObjectsUsingBlock:^(id propertyKey, id propertyValue, BOOL *stop) {
+    
+    NSDictionary *valuesToSerialize = serializeFullObjects ? [self dictionaryWithValuesForKeys:[[selfEntity propertiesByName] allKeys]] : self.changedValues;
+    
+    NSMutableArray *attributesToCheckForDefaultValues = !serializeFullObjects && [self isInserted] ? [[[selfEntity attributesByName] allKeys] mutableCopy] : nil;
+    
+    [valuesToSerialize enumerateKeysAndObjectsUsingBlock:^(id propertyKey, id propertyValue, BOOL *stop) {
+        
         NSPropertyDescription *property = [[selfEntity propertiesByName] objectForKey:propertyKey];
         if ([property isKindOfClass:[NSAttributeDescription class]]) {
             NSAttributeDescription *attributeDescription = (NSAttributeDescription *)property;
-            if (attributeDescription.attributeType != NSUndefinedAttributeType) {
+            NSString *fieldName = [selfEntity SMFieldNameForProperty:property];
+            if (attributeDescription.attributeType != NSUndefinedAttributeType && propertyValue != nil && propertyValue != [NSNull null]) {
                 if (attributeDescription.attributeType == NSDateAttributeType) {
+                    
                     NSDate *dateValue = propertyValue;
-                    if (dateValue != nil) {
-                        unsigned long long convertedDate = (unsigned long long)[dateValue timeIntervalSince1970] * 1000;
-                        NSNumber *numberToSet = [NSNumber numberWithUnsignedLongLong:convertedDate];
-                        [objectDictionary setObject:numberToSet forKey:[selfEntity SMFieldNameForProperty:property]];
-                    }
+                    long double convertedDate = (long double)[dateValue timeIntervalSince1970] * 1000.0000;
+                    NSNumber *numberToSet = [NSNumber numberWithUnsignedLongLong:convertedDate];
+                    [objectDictionary setObject:numberToSet forKey:fieldName];
+                    
                 } else if (attributeDescription.attributeType == NSBooleanAttributeType) {
                     // make sure that boolean values are serialized as true or false
                     id value = propertyValue;
-                    if (value != nil) {
-                        if ([value boolValue]) {
-                            [objectDictionary setObject:[NSNumber numberWithBool:YES] forKey:[selfEntity SMFieldNameForProperty:property]];
-                        }
-                        else {
-                            [objectDictionary setObject:[NSNumber numberWithBool:NO] forKey:[selfEntity SMFieldNameForProperty:property]];
-                        }
+                    if ([value boolValue]) {
+                        [objectDictionary setObject:[NSNumber numberWithBool:YES] forKey:fieldName];
                     }
+                    else {
+                        [objectDictionary setObject:[NSNumber numberWithBool:NO] forKey:fieldName];
+                    }
+                }  else if (attributeDescription.attributeType == NSTransformableAttributeType) {
+                    
+                    // make sure geopoint values are serialized as dictionaries
+                    NSData *data = propertyValue;
+                    NSDictionary *geoDictionary = [NSKeyedUnarchiver unarchiveObjectWithData:data];
+                    [objectDictionary setObject:geoDictionary forKey:fieldName];
+                    
                 } else {
                     id value = propertyValue;
-                    if (value != nil) {
-                        [objectDictionary setObject:value forKey:[selfEntity SMFieldNameForProperty:property]];
-                    }
+                    [objectDictionary setObject:value forKey:fieldName];
                 }
+            }
+            
+            // Remove from attributes to check for default values
+            if (attributesToCheckForDefaultValues) {
+                [attributesToCheckForDefaultValues removeObject:propertyKey];
             }
         }
         else if ([property isKindOfClass:[NSRelationshipDescription class]]) {
@@ -137,12 +152,12 @@
             if ([relationship isToMany]) {
                 NSMutableArray *relatedObjectDictionaries = [NSMutableArray array];
                 [(NSSet *)propertyValue enumerateObjectsUsingBlock:^(id child, BOOL *stopRelEnum) {
-                    NSString *childObjectId = [child SMObjectId];
-                    if (childObjectId == nil) {
-                        *stopRelEnum = YES;
-                        [NSException raise:SMExceptionIncompatibleObject format:@"Trying to serialize an object with a to-many relationship whose value references an object with a nil value for it's primary key field.  Please make sure you assign object ids with assignObjectId before attaching to relationships.  The object in question is %@", [child description]];
-                    }
-                    [relatedObjectDictionaries addObject:[child SMObjectId]];
+                    NSManagedObjectID *childManagedObjectID = [child objectID];
+                    NSString *entityName = [[child entity] name];
+                    NSArray *components = [[[childManagedObjectID URIRepresentation] absoluteString] componentsSeparatedByString:[NSString stringWithFormat:@"%@/p", entityName]];
+                    NSString *childObjectID = [components objectAtIndex:1];
+                    
+                    [relatedObjectDictionaries addObject:childObjectID];
                 }];
                 
                 // add relationship header only if there are actual keys
@@ -170,7 +185,6 @@
                     
                     [*values addObject:[NSString stringWithFormat:@"%@=%@", relationshipKeyPath, [[relationship destinationEntity] SMSchema]]];
                     
-                    
                     NSPropertyDescription *primaryKeyProperty = [[[relationship destinationEntity] propertiesByName] objectForKey:[propertyValue primaryKeyField]];
                     [objectDictionary setObject:[NSDictionary dictionaryWithObject:[propertyValue SMObjectId] forKey:[[relationship destinationEntity] SMFieldNameForProperty:primaryKeyProperty]] forKey:[selfEntity SMFieldNameForProperty:property]];
                 }
@@ -183,11 +197,28 @@
                     
                     [*values addObject:[NSString stringWithFormat:@"%@=%@", relationshipKeyPath, [[relationship destinationEntity] SMSchema]]];
                     
-                    [objectDictionary setObject:[propertyValue SMDictionarySerializationByTraversingRelationshipsExcludingObjects:processedObjects entities:processedEntities relationshipHeaderValues:values relationshipKeyPath:relationshipKeyPath] forKey:[selfEntity SMFieldNameForProperty:property]];
+                    [objectDictionary setObject:[propertyValue SMDictionarySerializationByTraversingRelationshipsExcludingObjects:processedObjects entities:processedEntities relationshipHeaderValues:values relationshipKeyPath:relationshipKeyPath serializeFullObjects:serializeFullObjects sendLocalTimestamps:sendLocalTimestamps] forKey:[selfEntity SMFieldNameForProperty:property]];
                 }
             }
         }
     }];
+    
+    // Check for default values
+    if (attributesToCheckForDefaultValues && [attributesToCheckForDefaultValues count] > 0) {
+        [attributesToCheckForDefaultValues enumerateObjectsUsingBlock:^(id key, NSUInteger idx, BOOL *stop) {
+            NSAttributeDescription *attribute = [[selfEntity attributesByName] objectForKey:key];
+            if ([attribute defaultValue]) {
+                NSPropertyDescription *property = [[selfEntity propertiesByName] objectForKey:key];
+                
+                if (attribute.attributeType == NSBooleanAttributeType) {
+                    NSNumber *boolNumber = [[attribute defaultValue] boolValue] ? [NSNumber numberWithBool:YES] : [NSNumber numberWithBool:NO];
+                    [objectDictionary setObject:boolNumber forKey:[selfEntity SMFieldNameForProperty:property]];
+                } else {
+                    [objectDictionary setObject:[attribute defaultValue] forKey:[selfEntity SMFieldNameForProperty:property]];
+                }
+            }
+        }];
+    }
     
     // Add value for primary key field if needed
     NSString *primaryKeyField = [self SMPrimaryKeyField];
@@ -195,6 +226,15 @@
         [self attachObjectIdToDictionary:&objectDictionary];
     }
     
+    if (serializeFullObjects && !sendLocalTimestamps) {
+        // Remove any instances of createddate or lastmoddate
+        [objectDictionary removeObjectForKey:@"createddate"];
+        [objectDictionary removeObjectForKey:@"lastmoddate"];
+    }
+    
+    if ([[objectDictionary allKeys] indexOfObject:@"sm_owner"] != NSNotFound && [objectDictionary objectForKey:@"sm_owner"] == [NSNull null]) {
+        [objectDictionary removeObjectForKey:@"sm_owner"];
+    }
     
     return objectDictionary;
 }

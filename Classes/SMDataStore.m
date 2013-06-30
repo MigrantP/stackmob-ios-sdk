@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 StackMob
+ * Copyright 2012-2013 StackMob
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -269,7 +269,7 @@ failureCallbackQueue:(dispatch_queue_t)failureCallbackQueue
 {
     NSMutableURLRequest *request = [[self.session oauthClientWithHTTPS:options.isSecure] customCodeRequest:customCodeRequest options:options];
     
-    [self queueRequest:request options:options successCallbackQueue:successCallbackQueue failureCallbackQueue:failureCallbackQueue onSuccess:successBlock onFailure:failureBlock];
+    [self queueCustomCodeRequest:request customCodeRequestInstance:customCodeRequest options:options successCallbackQueue:successCallbackQueue failureCallbackQueue:failureCallbackQueue onSuccess:successBlock onFailure:failureBlock];
 }
 
 - (void)retryCustomCodeRequest:(NSURLRequest *)request options:(SMRequestOptions *)options onSuccess:(SMFullResponseSuccessBlock)successBlock onFailure:(SMFullResponseFailureBlock)failureBlock

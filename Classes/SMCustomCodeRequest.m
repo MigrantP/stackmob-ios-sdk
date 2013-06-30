@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 StackMob
+ * Copyright 2012-2013 StackMob
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 
 #import "SMCustomCodeRequest.h"
+#import "AFJSONRequestOperation.h"
 
 @interface SMCustomCodeRequest (hidden)
 
@@ -32,6 +33,7 @@
         self.httpVerb = verb;
         self.requestBody = body ? body : nil;
         self.queryStringParameters = [NSMutableArray arrayWithCapacity:1];
+        self.responseContentType = nil;
     }
     
     return self;
@@ -50,6 +52,7 @@
 @synthesize method = _method;
 @synthesize requestBody = _requestBody;
 @synthesize httpVerb = _httpVerb;
+@synthesize responseContentType = _responseContentType;
 
 - (id)initPostRequestWithMethod:(NSString *)method body:(NSString *)body
 {

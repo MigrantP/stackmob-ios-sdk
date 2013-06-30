@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 StackMob
+ * Copyright 2012-2013 StackMob
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,12 @@ extern NSString * SMNetworkStatusDidChangeNotification;
 extern NSString * SMCurrentNetworkStatusKey;
 
 typedef enum {
-    Unknown = -1,
-    NotReachable  = 0,
-    Reachable = 1,
+    Unknown __deprecated = -1,
+    NotReachable __deprecated = 0,
+    Reachable __deprecated = 1,
+    SMNetworkStatusUnknown = -1,
+    SMNetworkStatusNotReachable = 0,
+    SMNetworkStatusReachable = 1,
 } SMNetworkStatus;
 
 /**
@@ -44,9 +47,9 @@ typedef enum {
  This method will return an SMNetworkStatus, defined as:
  
         typedef enum {
-            Unknown = -1,
-            NotReachable  = 0,
-            Reachable = 1,
+            SMNetworkStatusUnknown = -1,
+            SMNetworkStatusNotReachable  = 0,
+            SMNetworkStatusReachable = 1,
         } SMNetworkStatus;
  
  
@@ -56,20 +59,20 @@ typedef enum {
  
  An example of testing reachability before sending a request would look like this:
  
-        if ([client.session.networkMonitor currentNetworkStatus] == Reachable) {
+        if ([client.session.networkMonitor currentNetworkStatus] == SMNetworkStatusReachable) {
             // send request
         }
  
  You can also handle each state case by case in a switch statement:
  
         switch([client.session.networkMonitor currentNetworkStatus]) {
-            case  Reachable:
+            case  SMNetworkStatusReachable:
                 // do Reachable stuff
                 break;
-            case NotReachable:
+            case SMNetworkStatusNotReachable:
                 // do NotReachable stuff
                 break;
-            case Unknown:
+            case SMNetworkStatusUnknown:
                 // do Unknown stuff
                 break;
             default:
@@ -83,7 +86,7 @@ typedef enum {
  
  In order to access the value of `SMCurrentNetworkStatusKey` in a format for comparing to specific states or use in a switch statement, retrieve the intValue like this:
  
-        if ([[[notification userInfo] objectForKey:SMCurrentNetworkStatusKey] intValue] == Reachable) {
+        if ([[[notification userInfo] objectForKey:SMCurrentNetworkStatusKey] intValue] == SMNetworkStatusReachable) {
             // do Reachable stuff
         }
  
@@ -101,6 +104,10 @@ typedef enum {
  
         }];
  
+ ## Deprecations
+ 
+ As of version 2.0.0, network status options are prefixed with SMNetworkStatus.  For example, instead of `Reachable`, use `SMNetworkStatusReachable`.  This change was made for consistency purposes.
+ 
  */
 @interface SMNetworkReachability : AFHTTPClient
 
@@ -108,6 +115,8 @@ typedef enum {
  Initializes an instance of `SMNetworkReachability` which can be used to monitor the network reachability from the device to StackMob.
  
  @return A new instance of `SMNetworkReachability`.
+ 
+ @since Available in iOS SDK 1.1.3 and later.
  */
 - (id)init;
 
@@ -115,12 +124,16 @@ typedef enum {
  The current status of the device's network connection and reachability to StackMob.
  
  @return Reachable if the device has a network connection and can successfully reach StackMob, NotReachable if StackMob is not reachable either because there is no network connection on the device or the service is down, Unknown during in-between times of network connection initialization.
+ 
+ @since Available in iOS SDK 1.1.3 and later.
  */
 - (SMNetworkStatus)currentNetworkStatus;
 
 /**
  Provide a block to execute whenever there is a change in network reachability. 
  @param block The block to execute when the network status changes.
+ 
+ @since Available in iOS SDK 1.1.3 and later.
  */
 - (void)setNetworkStatusChangeBlock:(void (^)(SMNetworkStatus status))block;
 
@@ -130,6 +143,8 @@ typedef enum {
  The block must return an SMCachePolicy.  This method is useful when you want to set the cache policy based on the network status.
  
  @param block The block to execute when the network status changes.
+ 
+ @since Available in iOS SDK 1.1.3 and later.
  */
 - (void)setNetworkStatusChangeBlockWithCachePolicyReturn:(SMCachePolicy (^)(SMNetworkStatus status))block;
 

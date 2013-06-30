@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 StackMob
+ * Copyright 2012-2013 StackMob
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@
 @interface SMUserSession ()
 
 @property (nonatomic, copy) NSString *oauthStorageKey;
+@property (readwrite, nonatomic, copy) SMTokenRefreshFailureBlock tokenRefreshFailureBlock;
 
 - (NSURL *)SM_getStoreURLForUserIdentifierTable;
 - (void)SM_createStoreURLPathIfNeeded:(NSURL *)storeURL;
@@ -49,6 +50,7 @@
 @synthesize oauthStorageKey = _SM_oauthStorageKey;
 @synthesize networkMonitor = _SM_networkMonitor;
 @synthesize userIdentifierMap = _SM_userIdentifierMap;
+@synthesize tokenRefreshFailureBlock = _tokenRefreshFailureBlock;
 
 - (id)initWithAPIVersion:(NSString *)version
                  apiHost:(NSString *)apiHost
@@ -72,8 +74,13 @@
         self.userPrimaryKeyField = userPrimaryKeyField;
         self.userPasswordField = userPasswordField;
         self.refreshing = NO;
+        self.tokenRefreshFailureBlock = nil;
         
-        self.oauthStorageKey = [NSString stringWithFormat:@"%@.%@.oauth", [[NSBundle bundleForClass:[self class]] bundleIdentifier], publicKey];
+        NSString *applicationName = [[[NSBundle mainBundle] infoDictionary] valueForKey:(NSString *)kCFBundleNameKey];
+        if (!applicationName) {
+            applicationName = @"nil";
+        }
+        self.oauthStorageKey = [NSString stringWithFormat:@"%@.%@.oauth", applicationName, publicKey];
         [self saveAccessTokenInfo:[[NSUserDefaults standardUserDefaults] dictionaryForKey:self.oauthStorageKey]];
         
         [self SMReadUserIdentifierMap];
@@ -93,6 +100,7 @@
 {
     [self saveAccessTokenInfo:nil];
     [[NSUserDefaults standardUserDefaults] removeObjectForKey:self.oauthStorageKey];
+    [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
 - (id)oauthClientWithHTTPS:(BOOL)https
@@ -103,21 +111,32 @@
 - (void)refreshTokenOnSuccess:(void (^)(NSDictionary *userObject))successBlock
                     onFailure:(void (^)(NSError *theError))failureBlock
 {
-    [self refreshTokenWithSuccessCallbackQueue:nil failureCallbackQueue:nil onSuccess:successBlock onFailure:failureBlock];
     
+    [self refreshTokenWithSuccessCallbackQueue:nil failureCallbackQueue:nil onSuccess:successBlock onFailure:failureBlock];
 }
 
 - (void)refreshTokenWithSuccessCallbackQueue:(dispatch_queue_t)successCallbackQueue failureCallbackQueue:(dispatch_queue_t)failureCallbackQueue onSuccess:(void (^)(NSDictionary *userObject))successBlock onFailure:(void (^)(NSError *theError))failureBlock
 {
+    if (!successCallbackQueue) {
+        successCallbackQueue = dispatch_get_main_queue();
+    }
+    if (!failureCallbackQueue) {
+        failureCallbackQueue = dispatch_get_main_queue();
+    }
+    
     if (self.refreshToken == nil) {
         if (failureBlock) {
-            NSError *error = [[NSError alloc] initWithDomain:SMErrorDomain code:SMErrorInvalidArguments userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Refresh Token is nil", NSLocalizedDescriptionKey, nil]];
-            failureBlock(error);
+            NSError *refreshError = [[NSError alloc] initWithDomain:SMErrorDomain code:SMErrorInvalidArguments userInfo:[NSDictionary dictionaryWithObjectsAndKeys:@"Refresh Token is nil", NSLocalizedDescriptionKey, nil]];
+            dispatch_async(failureCallbackQueue, ^{
+                failureBlock(refreshError);
+            });
         }
     } else if (self.refreshing) {
         if (failureBlock) {
-            NSError *error = [[NSError alloc] initWithDomain:SMErrorDomain code:SMErrorRefreshTokenInProgress userInfo:nil];
-            failureBlock(error);
+            NSError *refreshError = [[NSError alloc] initWithDomain:SMErrorDomain code:SMErrorRefreshTokenInProgress userInfo:nil];
+            dispatch_async(failureCallbackQueue, ^{
+                failureBlock(refreshError);
+            });
         }
     } else {
         self.refreshing = YES;//Don't ever trigger two refreshToken calls
@@ -155,7 +174,7 @@
                 NSError *networkNotReachableError = [[NSError alloc] initWithDomain:SMErrorDomain code:SMErrorNetworkNotReachable userInfo:[error userInfo]];
                 failureBlock(networkNotReachableError);
             } else {
-                int statusCode = response.statusCode;
+                int statusCode = (int)response.statusCode;
                 NSString *domain = HTTPErrorDomain;
                 if ([[JSON valueForKey:@"error_description"] isEqualToString:@"Temporary password reset required."]) {
                     statusCode = SMErrorTemporaryPasswordResetRequired;
@@ -183,6 +202,7 @@
     [resultsToSave setObject:expirationDate forKey:EXPIRES_IN];
     [self saveAccessTokenInfo:resultsToSave];
     [[NSUserDefaults standardUserDefaults] setObject:resultsToSave forKey:self.oauthStorageKey];
+    [[NSUserDefaults standardUserDefaults] synchronize];
     return [[result valueForKey:@"stackmob"] valueForKey:@"user"];
 }
 
@@ -278,7 +298,7 @@
                                               errorDescription:&errorDesc];
         
         if (!temp) {
-            [NSException raise:SMExceptionCacheError format:@"Error reading user identifier: %@, format: %d", errorDesc, format];
+            [NSException raise:SMExceptionCacheError format:@"Error reading user identifier: %@, format: %d", errorDesc, (int)format];
         } else {
             self.userIdentifierMap = [temp mutableCopy];
         }
@@ -308,6 +328,11 @@
         [NSException raise:SMExceptionCacheError format:@"Error saving identifier data with error %@", error];
     }
     
+}
+
+- (void)setTokenRefreshFailureBlock:(void (^)(NSError *error, SMFailureBlock originalFailureBlock))block
+{
+    _tokenRefreshFailureBlock = block;
 }
 
 

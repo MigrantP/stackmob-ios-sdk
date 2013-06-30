@@ -1,5 +1,5 @@
 /**
- * Copyright 2012 StackMob
+ * Copyright 2012-2013 StackMob
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,9 @@ describe(@"SMCoreDataStore", ^{
         __block SMClient *client = nil;
         __block SMCoreDataStore *coreDataStore = nil;
         beforeEach(^{
-            mom = [NSManagedObjectModel mergedModelFromBundles:[NSBundle allBundles]];
+            NSBundle *classBundle = [NSBundle bundleForClass:[self class]];
+            NSURL *modelURL = [classBundle URLForResource:@"SMCoreDataIntegrationTest" withExtension:@"momd"];
+            mom = [[NSManagedObjectModel alloc] initWithContentsOfURL:modelURL];
             client = [[SMClient alloc] initWithAPIVersion:@"1" publicKey:@"XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"];
         });
         it(@"the client should return an initialized SMCoreDataStore instance", ^{
@@ -42,7 +44,9 @@ describe(@"SMCoreDataStore", ^{
         __block SMClient *client = nil;
         __block SMCoreDataStore *coreDataStore = nil;
         beforeEach(^{
-            mom = [NSManagedObjectModel mergedModelFromBundles:[NSBundle allBundles]];
+            NSBundle *classBundle = [NSBundle bundleForClass:[self class]];
+            NSURL *modelURL = [classBundle URLForResource:@"SMCoreDataIntegrationTest" withExtension:@"momd"];
+            mom = [[NSManagedObjectModel alloc] initWithContentsOfURL:modelURL];
             client = [[SMClient alloc] initWithAPIVersion:@"1" publicKey:@"XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"];
             coreDataStore = [client coreDataStoreWithManagedObjectModel:mom];
         });

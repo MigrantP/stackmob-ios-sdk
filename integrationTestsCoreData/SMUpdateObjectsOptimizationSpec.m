@@ -1,5 +1,5 @@
 /**
- * Copyright 2012 StackMob
+ * Copyright 2012-2013 StackMob
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,15 +30,20 @@ describe(@"updating an object only persists changed fields", ^{
     beforeEach(^{
         client = [SMIntegrationTestHelpers defaultClient];
         [SMClient setDefaultClient:client];
-        cds = [client coreDataStoreWithManagedObjectModel:[NSManagedObjectModel mergedModelFromBundles:[NSBundle allBundles]]];
+        NSBundle *classBundle = [NSBundle bundleForClass:[self class]];
+        NSURL *modelURL = [classBundle URLForResource:@"SMCoreDataIntegrationTest" withExtension:@"momd"];
+        NSManagedObjectModel *aModel = [[NSManagedObjectModel alloc] initWithContentsOfURL:modelURL];
+        cds = [client coreDataStoreWithManagedObjectModel:aModel];
         moc = [cds contextForCurrentThread];
         [[client.session.networkMonitor stubAndReturn:theValue(1)] currentNetworkStatus];
         person = [NSEntityDescription insertNewObjectForEntityForName:@"Person" inManagedObjectContext:moc];
         [person setValue:@"bob" forKey:@"first_name"];
         [person setValue:@"jean" forKey:@"first_name"];
         [person setValue:[person assignObjectId] forKey:[person primaryKeyField]];
-        NSDictionary *personDict = [person SMDictionarySerialization];
-        [[theValue([[[personDict objectForKey:@"SerializedDict"] allKeys] count]) should] equal:theValue(2)];
+        NSDictionary *personDict = [person SMDictionarySerialization:NO sendLocalTimestamps:NO];
+        
+        // Add 1 for default values
+        [[theValue([[[personDict objectForKey:@"SerializedDict"] allKeys] count]) should] equal:theValue(3)];
         
         [SMCoreDataIntegrationTestHelpers executeSynchronousSave:moc withBlock:^(NSError *error) {
             [error shouldBeNil];
@@ -54,9 +59,11 @@ describe(@"updating an object only persists changed fields", ^{
     it(@"should only persist the updated fields", ^{
         [[client.session.networkMonitor stubAndReturn:theValue(1)] currentNetworkStatus];
         [person setValue:@"joe" forKey:@"first_name"];
-        NSDictionary *personDict = [person SMDictionarySerialization];
+        NSDictionary *personDict = [person SMDictionarySerialization:NO sendLocalTimestamps:NO];
         [[[personDict objectForKey:@"SerializedDict"] objectForKey:@"first_name"] shouldNotBeNil];
         [[[personDict objectForKey:@"SerializedDict"] objectForKey:@"person_id"] shouldNotBeNil];
+        
+        // Add 1 for default values
         [[theValue([[[personDict objectForKey:@"SerializedDict"] allKeys] count]) should] equal:theValue(2)];
         [SMCoreDataIntegrationTestHelpers executeSynchronousSave:moc withBlock:^(NSError *error) {
             [error shouldBeNil];

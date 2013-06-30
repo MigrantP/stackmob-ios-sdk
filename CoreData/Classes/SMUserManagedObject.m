@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 StackMob
+ * Copyright 2012-2013 StackMob
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,12 @@
 @implementation SMUserManagedObject
 
 @synthesize client = _client;
+
+- (id)initWithEntityName:(NSString *)entityName insertIntoManagedObjectContext:(NSManagedObjectContext *)context
+{
+    NSEntityDescription *entity = [NSEntityDescription entityForName:entityName inManagedObjectContext:context];
+    return [self initWithEntity:entity client:[SMClient defaultClient] insertIntoManagedObjectContext:context];
+}
 
 - (id)initWithEntity:(NSEntityDescription *)entity insertIntoManagedObjectContext:(NSManagedObjectContext *)context
 {

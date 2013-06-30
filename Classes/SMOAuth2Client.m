@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 StackMob
+ * Copyright 2012-2013 StackMob
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 #import "SMRequestOptions.h"
 #import "Base64EncodedStringFromData.h"
 #import "SystemInformation.h"
+#import "SMError.h"
 
 @implementation SMOAuth2Client
 
@@ -69,8 +70,31 @@
     
     [request setHTTPMethod:aRequest.httpVerb];
     
-    NSString *acceptHeader = [NSString stringWithFormat:@"application/vnd.stackmob+json; version=%@", self.version];
-    [request setValue:acceptHeader forHTTPHeaderField:@"Accept"];
+    // Set accept headers here
+    if (options.headers && [options.headers count] > 0) {
+        // Enumerate through options and add them to the request header.
+        [options.headers enumerateKeysAndObjectsUsingBlock:^(id headerField, id headerValue, BOOL *stop) {
+            
+            // Error checks for functionality not supported
+            if ([headerField isEqualToString:@"X-StackMob-Expand"]) {
+                if ([[request HTTPMethod] isEqualToString:@"POST"] || [[request HTTPMethod] isEqualToString:@"PUT"]) {
+                    [NSException raise:SMExceptionIncompatibleObject format:@"Expand depth is not supported for creates or updates.  Please check your requests and edit accordingly."];
+                }
+            }
+            
+            [request setValue:headerValue forHTTPHeaderField:headerField];
+        }];
+        
+        // Set the headers dictionary to empty, to prevent unnecessary enumeration during recursion.
+        options.headers = [NSDictionary dictionary];
+    }
+    
+    // Set Accept header if needed
+    if ([[[request allHTTPHeaderFields] allKeys] indexOfObject:@"Accept"] == NSNotFound) {
+        NSString *acceptHeader = [NSString stringWithFormat:@"application/vnd.stackmob+json; version=%@", self.version];
+        [request setValue:acceptHeader forHTTPHeaderField:@"Accept"];
+    }
+    
     [request setValue:self.publicKey forHTTPHeaderField:@"X-StackMob-API-Key"];
     [request setValue:[NSString stringWithFormat:@"StackMob/%@ (%@/%@; %@;)", SDK_VERSION, smDeviceModel(), smSystemVersion(), [[NSLocale currentLocale] localeIdentifier]] forHTTPHeaderField:@"User-Agent"];
 	

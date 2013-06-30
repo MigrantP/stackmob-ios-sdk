@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 StackMob
+ * Copyright 2012-2013 StackMob
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,9 +26,6 @@ void syncWithSemaphore(void (^block)(dispatch_semaphore_t semaphore));
 
 void syncReturn(dispatch_semaphore_t semaphore);
 
-/**
- The `Synchronization` class provides helper methods for making synchronous calls to StackMob.  This is done because Core Data makes all calls to it's persistent store synchronously, therefore we must do the same with StackMob.
- */
 @interface Synchronization : NSObject
 
 @end
